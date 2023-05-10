@@ -96,18 +96,19 @@ $$;
 create or replace function login_user(
 	login varchar(255),
 	pass varchar(255),
-	jwt varchar(255)
+	jwt varchar(255),
+	uexp_in varchar(255)
 ) returns varchar(255) language plpgsql as $$
 declare
 	user_salt varchar(255);
 	hashed_password varchar(255);
 	
-	user_id int;
+	uid int;
 	user_token varchar(255);
 	user_pass varchar(255);
 begin
-	select user_name, salt, user_password from users where user_name = login
-	into login, user_salt, hashed_password;
+	select user_id, user_name, salt, user_password from users where user_name = login
+	into uid, login, user_salt, hashed_password;
 	if (login is null) 
 	then
 		raise exception 'user does not exists';
@@ -118,6 +119,10 @@ begin
 	if (user_pass = hashed_password)
 	then
 		-- Setting token to database
+		-- data is being validated on server, so there is a potential block
+		-- TODO: change this function and check token here
+		insert into auth_tokens(user_id, expires_in, auth_token) values
+		(uid, uexp_in::timestamp, jwt);
 		return 'success';
 	else
 		raise exception 'Incorrect password!';
@@ -131,7 +136,7 @@ select * from users;
 select create_user('user123', 'paS$1234', 1);
 select crypt('paS$1234', '$2a$06$EY0aB1bWDR3TCmIJtKdNru');
 drop function login_user;
-select login_user('user123', 'paS$1234',);
+select login_user('user123', 'paS$1234', 'sample_token', '2023-05-10 10:30:00');
 
 
 

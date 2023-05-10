@@ -17,7 +17,6 @@ create table AUTH_TOKENS (
 	expires_in TIMESTAMP default current_timestamp,
 	auth_token varchar(255),
 	
-	
 	constraint FK_USER foreign key(user_id) references USERS(user_id) on delete cascade
 )
 
