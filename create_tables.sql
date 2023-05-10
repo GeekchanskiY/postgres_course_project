@@ -14,9 +14,8 @@ create table USERS (
 
 create table AUTH_TOKENS (
 	user_id INT unique not null,
-	time_started TIMESTAMP default current_timestamp,
+	expires_in TIMESTAMP default current_timestamp,
 	auth_token varchar(255),
-	auth_time int, -- session duration in minutes
 	
 	
 	constraint FK_USER foreign key(user_id) references USERS(user_id) on delete cascade
