@@ -12,6 +12,16 @@ create table USERS (
 	constraint FK_ROLE foreign key(role_id) references USER_ROLE(role_id) on delete cascade
 ) tablespace TS_USER;
 
+create table AUTH_TOKENS (
+	user_id INT unique not null,
+	time_started TIMESTAMP default current_timestamp,
+	auth_token varchar(255),
+	auth_time int, -- session duration in minutes
+	
+	
+	constraint FK_USER foreign key(user_id) references USERS(user_id) on delete cascade
+)
+
 create table CRYPTO (
 	crypto_id serial primary key,
 	crypto_name VARCHAR(255) not null,
