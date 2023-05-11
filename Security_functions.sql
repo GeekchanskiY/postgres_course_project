@@ -7,6 +7,7 @@ create or replace function check_user_access(
 declare 
 	real_id INT;
 	real_role VARCHAR(255);
+	expected_role_id INT;
 	real_jwt VARCHAR(255);
 	real_expires_in timestamp;
 begin 
@@ -30,6 +31,7 @@ begin
 	
 	if (real_role != expected_role)
 	then
+		-- raise exception '% is not % !', real_role, expected_role;
 		return false;
 	end if;
 	
@@ -39,10 +41,10 @@ $$;
 
 
 drop function check_user_access;
-select check_user_access(1, 'sample_token', 'superuser');
+select check_user_access(1, 'sample_token', 'user');
 
 select * from users;
 
-update users set role_id = 2 where user_id = 2;
+update auth_tokens set expires_in = current_timestamp + interval '1 hour' where auth_token = 'sample_token';
 
 select user_role.role_name from users inner join user_role on users.role_id = user_role.role_id where users.user_id = 1;
