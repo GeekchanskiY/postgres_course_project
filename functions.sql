@@ -131,6 +131,7 @@ end;
 $$;
 
 
+
 select * from user_role;
 select * from users;
 select create_user('user123', 'paS$1234', 1);
