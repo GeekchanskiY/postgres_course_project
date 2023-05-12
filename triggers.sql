@@ -85,4 +85,45 @@ BEGIN
 END;
 $$;
 
+create or replace function drop_shot_view_with_crypto()
+returns trigger as
+$$
+declare 
+	view_name varchar(255);
+	depending_crypto_name varchar(255);
+	depending_crypto_id INT;
+	wow text;
+begin
+	depending_crypto_name := old.crypto_name;
+	depending_crypto_id := old.crypto_id;
+	if (depending_crypto_id is null)
+	then
+		RAISE exception 'a';
+	end if;
+	view_name := FORMAT('crypto_shot_view_%s', depending_crypto_name);
+	wow := FORMAT(
+    'DROP MATERIALIZED VIEW %I ',
+     view_name,
+     depending_crypto_id
+	);
+	execute wow;
+	
+	return new;
+end; 
+$$ language plpgsql;
+
+DO
+$$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_trigger
+        WHERE tgname = 'drop_shot_view_with_crypto_trigger'
+    ) THEN
+        create trigger drop_shot_view_with_crypto_trigger
+		after delete on crypto for each row
+		execute function drop_shot_view_with_crypto();
+    END IF;
+END;
+$$;
 
