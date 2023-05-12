@@ -1,9 +1,9 @@
-create table USER_ROLE (
+create table if not exists USER_ROLE (
 	role_id serial primary key,
 	role_name varchar(50) unique not null
 ) tablespace TS_USER;
 
-create table USERS (
+create table if not exists USERS (
 	user_id serial primary key,
 	user_name varchar(255) not null unique,
 	user_password varchar(255) not null,
@@ -12,7 +12,7 @@ create table USERS (
 	constraint FK_ROLE foreign key(role_id) references USER_ROLE(role_id) on delete cascade
 ) tablespace TS_USER;
 
-create table AUTH_TOKENS (
+create table if not exists AUTH_TOKENS (
 	user_id INT unique not null,
 	expires_in TIMESTAMP default current_timestamp,
 	auth_token varchar(255),
@@ -20,7 +20,7 @@ create table AUTH_TOKENS (
 	constraint FK_USER foreign key(user_id) references USERS(user_id) on delete cascade
 )
 
-create table CRYPTO (
+create table if not exists CRYPTO (
 	crypto_id serial primary key,
 	crypto_name VARCHAR(255) not null,
 	symbol VARCHAR(10) not null,
@@ -36,7 +36,7 @@ create table CRYPTO (
 	constraint positive_price check (price >= 0)
 ) tablespace TS_CRYPTO;
 
-create table NEWS (
+create table if not exists NEWS (
 	news_id serial primary key,
 	user_id INT not null,
 	title varchar(255),
@@ -44,7 +44,7 @@ create table NEWS (
 	constraint FK_NEWS_AUTHOR foreign key(user_id) references USERS(user_id) on delete cascade
 ) tablespace TS_NEWS;
 
-create table NEWSLIKE (
+create table if not exists NEWSLIKE (
 	user_id INT,
 	news_id INT,
 	
@@ -54,7 +54,7 @@ create table NEWSLIKE (
 	constraint FK_USER_LIKED foreign key(user_id) references USERS(user_id) on delete cascade
 ) tablespace TS_NEWS;
 
-create table NEWSCOMMENT (
+create table if not exists NEWSCOMMENT (
 	comment_id serial primary key,
 	user_id INT not null,
 	news_id INT not null,
@@ -68,13 +68,13 @@ create table NEWSCOMMENT (
 	
 ) tablespace TS_NEWS;
 
-create table  NEWSIMAGE(
+create table if not exists NEWSIMAGE(
 	news_id INT not null,
 	image BYTEA not null,
 	constraint FK_NEWS_IMAGE foreign key(news_id) references NEWS(news_id) on delete cascade
 ) tablespace TS_NEWS;
 
-create table CRYPTO_SHOT (
+create table if not exists CRYPTO_SHOT (
 	shot_id serial primary key,
 	shot_time timestamp,
 	price numeric(18, 8),
@@ -91,7 +91,7 @@ create table CRYPTO_SHOT (
 	constraint positive_price check (price >= 0)
 ) tablespace TS_CRYPTO;
 
-create table CRYPTO_REVIEW (
+create table if not exists CRYPTO_REVIEW (
 	review_id serial primary key,
 	title VARCHAR(255) not null,
 	review_text text,
@@ -105,7 +105,7 @@ create table CRYPTO_REVIEW (
 
 ) tablespace TS_CRYPTO;
 
-create table CRYPTO_FAVOURITE(
+create table if not exists CRYPTO_FAVOURITE(
 	user_id INT not null,
 	crypto_id INT not null,
 	
