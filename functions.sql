@@ -1,54 +1,4 @@
-drop function create_user;
-
--- Function to check password strength
-create or replace function check_password_strength(password varchar(255))
-returns boolean
-as $$
-declare
-    num_uppercase int;
-    num_lowercase int;
-    num_digits int;
-    num_special int;
-    repeated_chars int;
-    i int;
-begin
-    if length(password) < 8 then
-        return false;
-    end if;
-    
-    num_uppercase := 0;
-    num_lowercase := 0;
-    num_digits := 0;
-    num_special := 0;
-    repeated_chars := 0;
-    
-    for i in 1..length(password) loop
-        if substring(password from i for 1) ~ '[A-Z]' then
-            num_uppercase := num_uppercase + 1;
-        elsif substring(password from i for 1) ~ '[a-z]' then
-            num_lowercase := num_lowercase + 1;
-        elsif substring(password from i for 1) ~ '[0-9]' then
-            num_digits := num_digits + 1;
-        else
-            num_special := num_special + 1;
-        end if;
-        
-        if i < length(password) and substring(password from i for 1) = substring(password from i+1 for 1) then
-            repeated_chars := repeated_chars + 1;
-        end if;
-    end loop;
-    
-    if num_uppercase = 0 or num_lowercase = 0 or num_digits = 0 or num_special = 0 or repeated_chars > 0 then
-        return false;
-    end if;
-    
-    return true;
-end;
-$$ language plpgsql;
-
-
-
--- Function to create user
+-- Function to create any user (only for superuser or sysdba)
 create or replace function create_user(
 	new_user_name varchar(255),
 	new_user_password varchar(255),
@@ -172,6 +122,34 @@ begin
 end;
 $$;
 
+CREATE OR replace FUNCTION create_crypto(
+	publisher_id int,
+	jwt varchar(255),
+	new_crypto_name varchar(255),
+	new_symbol varchar(255),
+	new_image bytea,
+	new_price numeric(18, 8),
+	new_volume numeric(18, 8),
+	new_market_cap numeric(18, 8),
+	new_transaction_count INT
+) returns void language plpgsql as $$
+declare
+	is_allowed bool;
+begin
+	select check_user_access(publisher_id, jwt, 'superuser') into is_allowed;
+	if (is_allowed = false)
+	then
+		
+		raise exception 'Not allowed!';
+	end if;
+	
+	insert into crypto(crypto_name, symbol, image, price, volume, market_cap, transactions_count)
+	values (new_crypto_name, new_symbol, new_image, new_price, new_volume, new_market_cap, new_transaction_count);
+	
+	return;
+end;
+$$;
+
 
 --select * from users;
 --select create_standard_user('user1234', 'paS$1234');
@@ -180,6 +158,8 @@ $$;
 --select crypt('paS$1234', '$2a$06$EY0aB1bWDR3TCmIJtKdNru');
 --drop function login_user;
 --select login_user('user123', 'paS$1234', 'sample_token', '2023-05-10 10:30:00');
+
+-- update auth_tokens set expires_in = current_timestamp + interval '1 hour', user_id = 1 where auth_token = 'sample_token';
 
 
 

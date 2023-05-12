@@ -29,67 +29,72 @@ begin
 	inner join user_role on users.role_id = user_role.role_id 
 	where users.user_id = real_id into real_role;
 	
-	if (real_role != expected_role)
+	if (real_role = 'superuser')
 	then
-		raise exception '% is not % !', real_role, expected_role;
-		return false;
+		return true;
 	end if;
 	
-	return true;
+	if (real_role = expected_role)
+	then
+		return true;
+	end if;
+	
+	if (expected_role = 'news_admin') and (real_role = 'admin')
+	then 
+		return true;
+	end if;
+
+	
+	return false;
 end;
 $$;
 
-CREATE OR replace FUNCTION create_crypto(
-	publisher_id int,
-	jwt varchar(255),
-	new_crypto_name varchar(255),
-	new_symbol varchar(255),
-	new_image bytea,
-	new_price numeric(18, 8),
-	new_volume numeric(18, 8),
-	new_market_cap numeric(18, 8),
-	new_transaction_count INT
-) returns void language plpgsql as $$
+-- Function to check password strength
+create or replace function check_password_strength(password varchar(255))
+returns boolean
+as $$
 declare
-	is_allowed bool;
+    num_uppercase int;
+    num_lowercase int;
+    num_digits int;
+    num_special int;
+    repeated_chars int;
+    i int;
 begin
-	select check_user_access(publisher_id, jwt, 'superuser') into is_allowed;
-	if (is_allowed = false)
-	then
-		
-		raise exception 'Not allowed!';
-	end if;
-	
-	insert into crypto(crypto_name, symbol, image, price, volume, market_cap, transactions_count)
-	values (new_crypto_name, new_symbol, new_image, new_price, new_volume, new_market_cap, new_transaction_count);
-	
-	return;
+    if length(password) < 8 then
+        return false;
+    end if;
+    
+    num_uppercase := 0;
+    num_lowercase := 0;
+    num_digits := 0;
+    num_special := 0;
+    repeated_chars := 0;
+    
+    for i in 1..length(password) loop
+        if substring(password from i for 1) ~ '[A-Z]' then
+            num_uppercase := num_uppercase + 1;
+        elsif substring(password from i for 1) ~ '[a-z]' then
+            num_lowercase := num_lowercase + 1;
+        elsif substring(password from i for 1) ~ '[0-9]' then
+            num_digits := num_digits + 1;
+        else
+            num_special := num_special + 1;
+        end if;
+        
+        if i < length(password) and substring(password from i for 1) = substring(password from i+1 for 1) then
+            repeated_chars := repeated_chars + 1;
+        end if;
+    end loop;
+    
+    if num_uppercase = 0 or num_lowercase = 0 or num_digits = 0 or num_special = 0 or repeated_chars > 0 then
+        return false;
+    end if;
+    
+    return true;
 end;
-$$;
+$$ language plpgsql;
 
-
--- drop function check_user_access;
--- select check_user_access(1, 'sample_token', 'superuser');
-
-
-
--- update users set role_id = 1 where user_id = 1;
-
--- update timestamp for tests
-update auth_tokens set expires_in = current_timestamp + interval '1 hour', user_id = 1 where auth_token = 'sample_token';
-
-
---select create_crypto(
---	1,
---	'sample_token',
---	'Bitcoin',
---	'BTC',
---	'\x123131'::bytea,
---	12.3,
---	12.3,
---	12.3,
---	5
---);
 
 
 
