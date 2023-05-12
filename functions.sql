@@ -52,9 +52,10 @@ $$ language plpgsql;
 create or replace function create_user(
 	new_user_name varchar(255),
 	new_user_password varchar(255),
-	new_user_role_id int
+	new_user_role_name varchar(255)
 ) returns varchar(255) language plpgsql as $$
 declare 
+	new_user_role_id INT;
 	res varchar(255);
 	bres bool;
 	salt varchar(255);
@@ -69,8 +70,8 @@ begin
 	end if;
 	
 	-- Check if role exists
-	select role_name from user_role where role_id = new_user_role_id into res;
-	if (res is null)
+	select role_id from user_role where role_name = new_user_role_name into new_user_role_id;
+	if (new_user_role_id is null)
 	then
 		raise exception 'Incorrect role!';
 	end if;
@@ -87,7 +88,48 @@ begin
 	select crypt(new_user_password, salt) into hashed_password;
 
 	insert into users(user_name, user_password, salt, role_id) values
-	(new_user_name, hashed_password, salt, role_id);
+	(new_user_name, hashed_password, salt, new_user_role_id);
+	
+	return new_user_name;
+end;
+$$;
+
+create or replace function create_standard_user(
+	new_user_name varchar(255),
+	new_user_password varchar(255)
+)returns varchar(255) language plpgsql as $$
+declare 
+	new_user_role_id INT;
+	res varchar(255);
+	bres bool;
+	salt varchar(255);
+	hashed_password varchar(255);
+begin
+	
+	-- Check if user does not exists
+	select user_name from users where user_name = new_user_name into res;
+	if (res is not null) 
+	then 
+		raise exception 'User already exists!';
+	end if;
+	
+	-- Select standart
+	select role_id from user_role where role_name = 'user' into new_user_role_id;
+	
+	
+	-- Check if password is strong
+	select check_password_strength(new_user_password) into bres;
+	if (bres = false)
+	then 
+		raise exception 'Password is weak!';
+	end if;
+	
+	-- generate salt and crypt password for user
+	select gen_salt('bf') into salt;
+	select crypt(new_user_password, salt) into hashed_password;
+
+	insert into users(user_name, user_password, salt, role_id) values
+	(new_user_name, hashed_password, salt, new_user_role_id);
 	
 	return new_user_name;
 end;
@@ -131,8 +173,9 @@ end;
 $$;
 
 
-
-
+--select * from users;
+--select create_standard_user('user1234', 'paS$1234');
+--delete from user_role where role_id = 4;
 --select create_user('user123', 'paS$1234', 1);
 --select crypt('paS$1234', '$2a$06$EY0aB1bWDR3TCmIJtKdNru');
 --drop function login_user;
