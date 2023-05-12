@@ -22,7 +22,7 @@ create table if not exists AUTH_TOKENS (
 
 create table if not exists CRYPTO (
 	crypto_id serial primary key,
-	crypto_name VARCHAR(255) not null,
+	crypto_name VARCHAR(255) unique not null,
 	symbol VARCHAR(10) not null,
 	image BYTEA not null,
 	price numeric(18, 8),

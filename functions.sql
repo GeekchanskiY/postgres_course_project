@@ -136,7 +136,7 @@ CREATE OR replace FUNCTION create_crypto(
 declare
 	is_allowed bool;
 begin
-	select check_user_access(publisher_id, jwt, 'superuser') into is_allowed;
+	select check_user_access(publisher_id, jwt, 'admin') into is_allowed;
 	if (is_allowed = false)
 	then
 		
@@ -150,6 +150,37 @@ begin
 end;
 $$;
 
+create or replace function create_crypto_shot(
+	publisher_id int,
+	jwt varchar(255),
+	
+	shot_crypto_name varchar(255), 
+	shot_shot_time varchar(255),
+	shot_price numeric(18, 8),
+	shot_market_cap numeric(18, 8),
+	shot_volume numeric(18, 8),
+	shot_transactions INT
+) returns void language plpgsql as $$
+declare
+	is_allowed bool;
+	shot_crypto_id INT;
+begin
+	select check_user_access(publisher_id, jwt, 'admin') into is_allowed;
+	if (is_allowed = false)
+	then
+		raise exception 'Not allowed!';
+	end if;
+	select crypto_id from crypto where crypto_name = shot_crypto_name into shot_crypto_id; 
+	if (shot_crypto_id is null)
+	then
+		raise exception 'Wrong crypto name!';
+	end if;
+	insert into crypto_shot(shot_time, price, market_cap, volume, transactions, crypto_id)
+	values (shot_shot_time::timestamp, shot_price, shot_market_cap, shot_volume, shot_transactions, shot_crypto_id);
+
+	return;
+end;
+$$;
 
 --select * from users;
 --select create_standard_user('user1234', 'paS$1234');
