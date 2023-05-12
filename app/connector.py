@@ -3,13 +3,14 @@
 from sqlalchemy import create_engine, text
 import psycopg2
 
+
 class CustomAdminConnector:
-    def __init__(self):
+    def __init__(self, user, password):
         self.conn = psycopg2.connect(
             host='0.0.0.0',
             database='postgres',
-            user='postgres',
-            password='postgres'
+            user='user_master',
+            password='DummyP4S$W0RD'
         )
         self.engine = create_engine('postgresql+psycopg2://postgres:postgres@0.0.0.0/postgres')
         self.cur = self.conn.cursor()
@@ -21,7 +22,7 @@ class CustomAdminConnector:
             result = conn.execute(text(query_str))
             for row in result:
                 print(row)
-        return res
+        return str(res)
 
 
 if __name__ == '__main__':

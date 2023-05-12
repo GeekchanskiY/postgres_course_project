@@ -132,12 +132,11 @@ $$;
 
 
 
-select * from user_role;
-select * from users;
-select create_user('user123', 'paS$1234', 1);
-select crypt('paS$1234', '$2a$06$EY0aB1bWDR3TCmIJtKdNru');
-drop function login_user;
-select login_user('user123', 'paS$1234', 'sample_token', '2023-05-10 10:30:00');
+
+--select create_user('user123', 'paS$1234', 1);
+--select crypt('paS$1234', '$2a$06$EY0aB1bWDR3TCmIJtKdNru');
+--drop function login_user;
+--select login_user('user123', 'paS$1234', 'sample_token', '2023-05-10 10:30:00');
 
 
 
