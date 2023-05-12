@@ -182,6 +182,19 @@ begin
 end;
 $$;
 
+create or replace function get_crypto_shots(
+	start_time timestamp,
+	end_time timestamp,
+	
+	crypto_name varchar(255)
+) returns table (
+	shot_time timestamp,
+	price numeric(18, 8),
+	market_cap numeric(18, 8),
+	volume numeric(18, 8),
+	transactions int
+)
+
 --select * from users;
 --select create_standard_user('user1234', 'paS$1234');
 --delete from user_role where role_id = 4;
