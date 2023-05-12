@@ -101,8 +101,10 @@ begin
 		RAISE exception 'a';
 	end if;
 	view_name := FORMAT('crypto_shot_view_%s', depending_crypto_name);
+	-- IF exists is unnecessary here, but i used it to avoid
+	-- errors during development
 	wow := FORMAT(
-    'DROP MATERIALIZED VIEW %I ',
+    'DROP MATERIALIZED VIEW IF EXISTS %I ',
      view_name,
      depending_crypto_id
 	);

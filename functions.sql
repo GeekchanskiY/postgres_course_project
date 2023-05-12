@@ -186,14 +186,29 @@ create or replace function get_crypto_shots(
 	start_time timestamp,
 	end_time timestamp,
 	
-	crypto_name varchar(255)
+	ncrypto_name varchar(255)
 ) returns table (
 	shot_time timestamp,
 	price numeric(18, 8),
 	market_cap numeric(18, 8),
 	volume numeric(18, 8),
 	transactions int
-)
+) language plpgsql as $$ 
+declare
+	ncrypto_id INT;
+	view_name varchar(255);
+	
+begin
+	select crypto_id from crypto where crypto_name = ncrypto_name;
+	if (crypto_id is null)
+	then
+		raise exception 'Invalid crypto id!'
+	end if;
+	
+	view_name := FORMAT('crypto_shot_view_%s', crypto_name);
+end;
+$$;
+
 
 --select * from users;
 --select create_standard_user('user1234', 'paS$1234');
