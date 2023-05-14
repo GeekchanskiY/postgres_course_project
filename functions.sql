@@ -187,13 +187,7 @@ create or replace function get_crypto_shots(
 	end_time timestamp,
 	
 	ncrypto_name varchar(255)
-) returns table (
-	shot_time timestamp,
-	price numeric(18, 8),
-	market_cap numeric(18, 8),
-	volume numeric(18, 8),
-	transactions int
-) language plpgsql as $$ 
+) returns void language plpgsql as $$ 
 declare
 	ncrypto_id INT;
 	view_name varchar(255);
@@ -201,14 +195,16 @@ declare
 	nquery text;
 	
 begin
-	select crypto_id from crypto where crypto_name = ncrypto_name;
-	if (crypto_id is null)
-	then
-		raise exception 'Invalid crypto id!'
-	end if;
+		select crypto_id from crypto where crypto_name = ncrypto_name into ncrypto_id; 
+		if (ncrypto_id is null)
+		then
+			raise exception 'Wrong crypto name!';
+		end if;
 	
 	view_name := FORMAT('crypto_shot_view_%s', crypto_name);
-	nquery := FORMAT("SELECT DATE_TRUNC('day', shot_time) as day, avg(price)")
+	nquery := "SELECT DATE_TRUNC('day', shot_time) as day, avg(price) from" + w_name + "group by day order by day;";
+	execute nquery;
+	return;
 end;
 $$;
 
@@ -220,10 +216,7 @@ $$;
 --select crypt('paS$1234', '$2a$06$EY0aB1bWDR3TCmIJtKdNru');
 --drop function login_user;
 --select login_user('user123', 'paS$1234', 'sample_token', '2023-05-10 10:30:00');
-
+select * from crypto;
 -- update auth_tokens set expires_in = current_timestamp + interval '1 hour', user_id = 1 where auth_token = 'sample_token';
 
-SELECT rolname, rolsuper, rolinherit, rolcreaterole, rolcreatedb
-FROM pg_roles
-WHERE rolname = current_user;
-
+select get_crypto_shots('2023-05-10 10:30:00', '2023-05-10 10:30:00', 'TestZ');

@@ -24,6 +24,7 @@ begin
 if ((select rolname from pg_roles where rolname = 'crypto_manager') is null)
 then 
 	create role crypto_manager LOGIN;
+	grant execute on function create_crypto to crypto_manager;
 end if;
 end;
 $$;
