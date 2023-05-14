@@ -54,6 +54,8 @@ class CustomConnector:
 
     rolename = 'postgres'
 
+    jwt: JWTHolder
+
     def __init__(self, user, password):
         # self.conn = psycopg2.connect(
         #     host='0.0.0.0',
@@ -137,6 +139,9 @@ class CustomPostgresConnector(CustomConnector):
 
     def login_user(self, username, password) -> str:
         token_expires_in = datetime.now() + self.token_live_time
+
+        self.jwt = JWTHolder()
+
         res = self._exec(
             f"select login_user('{username}', '{password}')"
         )
