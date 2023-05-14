@@ -43,6 +43,36 @@ begin
 end;
 $$;
 
+create or replace function delete_user(
+	old_user_name varchar(255),
+	old_user_password varchar(255)
+) returns varchar(255) language plpgsql as $$
+declare 
+	uid INT;
+	login varchar(255);
+	user_salt varchar(255);
+	hashed_password varchar(255);
+	user_pass varchar(255);
+begin 
+	select user_id, user_name, salt, user_password from users where user_name = old_user_name
+	into uid, login, user_salt, hashed_password;
+	if (login is null) 
+	then
+		raise exception 'User does not exists!';
+	end if;
+
+	select crypt(old_user_password, user_salt) into user_pass;
+
+	if (user_pass = hashed_password)
+	then
+		delete from users where user_id = uid;
+	else
+		raise exception 'Incorrect password!';
+	end if;
+	return login;
+end;
+$$;
+
 create or replace function create_standard_user(
 	new_user_name varchar(255),
 	new_user_password varchar(255)
@@ -102,7 +132,7 @@ begin
 	into uid, login, user_salt, hashed_password;
 	if (login is null) 
 	then
-		raise exception 'user does not exists';
+		raise exception 'User does not exists!';
 	end if;
 
 	select crypt(pass, user_salt) into user_pass;
@@ -207,7 +237,7 @@ begin
 end;
 $$;
 
-
+select user_id, user_name, salt, user_password from users where user_name = 'Dimka';
 -- select * from user_role;
 -- select * from users;
 --select * from users;
@@ -220,5 +250,5 @@ $$;
 -- select * from crypto;
 -- update auth_tokens set expires_in = current_timestamp + interval '1 hour', user_id = 1 where auth_token = 'sample_token';
 -- select create_user('Dimka', 'DimkaP4S$W0RD', 'superuser');
--- delete from users where user_name = 'Dimka';
+delete from users where user_name = 'Dimka';
 -- select get_crypto_shots('2023-05-10 10:30:00', '2023-05-10 10:30:00', 'TestZ');

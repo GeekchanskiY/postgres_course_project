@@ -1,9 +1,13 @@
 ''' PGSQL connection logic here '''
 
+from datetime import datetime, timedelta
+
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import DBAPIError
 # import psycopg2
 # from sqlalchemy.schema import Sequence
+
+from JWT_logic import JWTHolder
 
 #
 #   Exceptions block
@@ -26,6 +30,12 @@ class UserAlreadyExistsException(Exception):
     def __init__(self, message) -> None:
         self.message = message
         super().__init__(self.message)
+
+
+class UserDoesNotExistsException(Exception):
+    def __init__(self, message) -> None:
+        self.message = message
+        super().__init__(message)
 
 
 class WeakPasswordException(Exception):
@@ -93,11 +103,12 @@ class CustomConnector:
 
         if e_text == "Password is weak!":
             raise WeakPasswordException(e_text)
-        elif e_text == 'User alredy exists!':
+        elif e_text == 'User already exists!':
             raise UserAlreadyExistsException(e_text)
-
+        elif e_text == 'User does not exists!':
+            raise UserDoesNotExistsException(e_text)
         else:
-            raise Exception(e_text)
+            raise Exception('New_exception: ' + e_text)
 
 
 class CustomPostgresConnector(CustomConnector):
@@ -107,17 +118,29 @@ class CustomPostgresConnector(CustomConnector):
 
     available_roles = ['superuser', 'user', 'news_author', 'admin']
 
+    token_live_time = timedelta(minutes=30)
+
     def __init__(self, user, password):
         super().__init__(user, password)
 
-    def create_user(self, username, password, role) -> None:
-        try:
-            res = self._exec(
-                f"select create_user('{username}', '{password}', '{role}')"
-            )
-            print(res)
-        except DBAPIError as e:
-            self._handle_exception(str(e.orig))
+    def create_user(self, username, password, role) -> str:
+        res = self._exec(
+            f"select create_user('{username}', '{password}', '{role}')"
+        )
+        return str(res)
+
+    def delete_user(self, username, password) -> str:
+        res = self._exec(
+            f"select delete_user('{username}', '{password}')"
+        )
+        return str(res)
+
+    def login_user(self, username, password) -> str:
+        token_expires_in = datetime.now() + self.token_live_time
+        res = self._exec(
+            f"select login_user('{username}', '{password}')"
+        )
+        return str(res)
 
 
 class UserMasterConnector(CustomConnector):
@@ -151,5 +174,5 @@ if __name__ == '__main__':
     admin = CustomPostgresConnector('postgres', 'postgres')
     admin.create_user("Dimka", "DimkaP4S$W0RD", "superuser")
     print(admin._exec('SELECT * FROM USERS'))
+    admin.delete_user("Dimka", "DimkaP4S$W0RD")
     user = UserMasterConnector('user_master', 'DummyP4S$W0RD')
-
