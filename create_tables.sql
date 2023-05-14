@@ -36,44 +36,6 @@ create table if not exists CRYPTO (
 	constraint positive_price check (price >= 0)
 ) tablespace TS_CRYPTO;
 
-create table if not exists NEWS (
-	news_id serial primary key,
-	user_id INT not null,
-	title varchar(255),
-	contents text,
-	constraint FK_NEWS_AUTHOR foreign key(user_id) references USERS(user_id) on delete cascade
-) tablespace TS_NEWS;
-
-create table if not exists NEWSLIKE (
-	user_id INT,
-	news_id INT,
-	
-	UNIQUE(user_id, news_id),
-	
-	constraint FK_NEWS_LIKED foreign key(news_id) references NEWS(news_id) on delete cascade,
-	constraint FK_USER_LIKED foreign key(user_id) references USERS(user_id) on delete cascade
-) tablespace TS_NEWS;
-
-create table if not exists NEWSCOMMENT (
-	comment_id serial primary key,
-	user_id INT not null,
-	news_id INT not null,
-	newstext text,
-	publish_time timestamp,
-	
-	constraint FK_NEWS_COMMENTED foreign key(news_id) references NEWS(news_id) on delete cascade,
-	constraint FK_USER_COMMENTED foreign key(user_id) references USERS(user_id) on delete cascade,
-	
-	CONSTRAINT check_publish_time CHECK (publish_time <= CURRENT_TIMESTAMP)
-	
-) tablespace TS_NEWS;
-
-create table if not exists NEWSIMAGE(
-	news_id INT not null,
-	image BYTEA not null,
-	constraint FK_NEWS_IMAGE foreign key(news_id) references NEWS(news_id) on delete cascade
-) tablespace TS_NEWS;
-
 create table if not exists CRYPTO_SHOT (
 	shot_id serial primary key,
 	shot_time timestamp,

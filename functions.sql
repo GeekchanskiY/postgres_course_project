@@ -211,6 +211,8 @@ begin
 end;
 $$;
 
+
+-- Get my id bases on jwt because you should not know other id's
 create or replace function get_my_id(
 	jwt varchar(255)
 ) returns INTEGER language plpgsql as $$
@@ -251,4 +253,6 @@ begin
 	return;
 end;
 $$;
+
+delete from users where user_name = 'Dimka';
 

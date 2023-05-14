@@ -9,49 +9,7 @@ from sqlalchemy.exc import DBAPIError
 
 from JWT_logic import JWTHolder
 
-#
-#   Exceptions block
-#
-
-
-class InvalidPrivelegeExceprion(Exception):
-    def __init__(self, message: str) -> None:
-        self.message = message
-        super().__init__(self.message)
-
-
-class RoleDoesNotExists(Exception):
-    def __init__(self, message: str) -> None:
-        self.message = message
-        super().__init__(self.message)
-
-
-class UserAlreadyExistsException(Exception):
-    def __init__(self, message: str) -> None:
-        self.message = message
-        super().__init__(self.message)
-
-
-class UserDoesNotExistsException(Exception):
-    def __init__(self, message: str) -> None:
-        self.message = message
-        super().__init__(message)
-
-
-class WeakPasswordException(Exception):
-    def __init__(self, message: str) -> None:
-        self.message = message
-        super().__init__(message)
-
-
-class DoesNotExistsException(Exception):
-    def __init__(self, message: str) -> None:
-        self.message = message
-        super().__init__(message)
-
-#
-# Connectors
-#
+from exceptions import CustomExceptions as exc
 
 
 class CustomConnector:
@@ -60,6 +18,8 @@ class CustomConnector:
     rolename = 'postgres'
 
     jwt: JWTHolder
+
+    uid: int
 
     def __init__(self, user, password):
         # self.conn = psycopg2.connect(
@@ -76,7 +36,7 @@ class CustomConnector:
 
     def _check_role(self):
         if self._get_role() != self.rolename:
-            raise InvalidPrivelegeExceprion(f'You do not have \'{self.rolename}\' role!')
+            raise exc.InvalidPrivelegeExceprion(f'You do not have \'{self.rolename}\' role!')
 
     def _get_role(self) -> str | None:
         rolname = self._exec(
@@ -109,17 +69,17 @@ class CustomConnector:
         # to make Exception more informative
 
         if e_text == "Password is weak!":
-            raise WeakPasswordException(e_text)
+            raise exc.WeakPasswordException(e_text)
         elif e_text == 'User already exists!':
-            raise UserAlreadyExistsException(e_text)
+            raise exc.UserAlreadyExistsException(e_text)
         elif e_text == 'User does not exists!':
-            raise UserDoesNotExistsException(e_text)
+            raise exc.UserDoesNotExistsException(e_text)
         elif e_text == 'Not allowed!':
-            raise InvalidPrivelegeExceprion(e_text)
+            raise exc.InvalidPrivelegeExceprion(e_text)
         elif e_text == 'Crypto does not exists!' or \
                 e_text == 'Token does not exists!' or \
                 e_text == 'News does not exists!':
-            raise DoesNotExistsException(e_text)
+            raise exc.DoesNotExistsException(e_text)
         else:
             raise Exception('New_exception: ' + e_text)
 
@@ -158,20 +118,23 @@ class CustomPostgresConnector(CustomConnector):
         )
         return str(res)
 
+    def _get_my_id(self):
+        token = self.jwt.get_jwt()
+
+        res = self._exec(
+            f"select get_my_id('{token}')"
+        )
+        if res is not None:
+            res = res[0][0]
+            self.uid = res
+
+        return res
+
 
 class UserMasterConnector(CustomConnector):
     ''' User master with users manage priveleges and methods '''
 
     rolename = 'user_master'
-
-    def __init__(self, user, password):
-        super().__init__(user, password)
-
-
-class NewsMasterConnector(CustomConnector):
-    ''' News master to manage news '''
-
-    rolename = 'news_manager'
 
     def __init__(self, user, password):
         super().__init__(user, password)
@@ -192,5 +155,6 @@ if __name__ == '__main__':
     print(admin._exec('SELECT * FROM USERS'))
     admin.login_user("Dimka", "DimkaP4S$W0RD")
     print(admin._exec('select * FROM auth_tokens'))
-    # admin.delete_user("Dimka", "DimkaP4S$W0RD")
+    print(admin._get_my_id())
+    admin.delete_user("Dimka", "DimkaP4S$W0RD")
     user = UserMasterConnector('user_master', 'DummyP4S$W0RD')
