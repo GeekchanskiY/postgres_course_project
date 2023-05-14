@@ -198,6 +198,8 @@ declare
 	ncrypto_id INT;
 	view_name varchar(255);
 	
+	nquery text;
+	
 begin
 	select crypto_id from crypto where crypto_name = ncrypto_name;
 	if (crypto_id is null)
@@ -206,6 +208,7 @@ begin
 	end if;
 	
 	view_name := FORMAT('crypto_shot_view_%s', crypto_name);
+	nquery := FORMAT("SELECT DATE_TRUNC('day', shot_time) as day, avg(price)")
 end;
 $$;
 
@@ -220,5 +223,7 @@ $$;
 
 -- update auth_tokens set expires_in = current_timestamp + interval '1 hour', user_id = 1 where auth_token = 'sample_token';
 
-
+SELECT rolname, rolsuper, rolinherit, rolcreaterole, rolcreatedb
+FROM pg_roles
+WHERE rolname = current_user;
 

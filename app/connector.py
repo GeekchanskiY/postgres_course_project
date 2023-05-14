@@ -61,7 +61,7 @@ class CustomConnector:
 class UserMasterConnector(CustomConnector):
     ''' User master with users manage priveleges and methods '''
 
-    rolename = 'user_manager'
+    rolename = 'user_master'
 
     def __init__(self, user, password):
         super().__init__(user, password)
@@ -70,7 +70,23 @@ class UserMasterConnector(CustomConnector):
 class NewsMasterConnector(CustomConnector):
     ''' News master to manage news '''
 
+    rolename = 'news_manager'
+
+    def __init__(self, user, password):
+        super().__init__(user, password)
+
+
+class CryptoMasterConnector(CustomConnector):
+    ''' Crypto master with crypto manage priveleges and methods '''
+
+    rolename = 'crypto_manager'
+
+    def __init__(self, user, password):
+        super().__init__(user, password)
+
 
 if __name__ == '__main__':
-    cc = CustomConnector('postgres', 'postgres')
+    admin = CustomConnector('postgres', 'postgres')
+
+    user = UserMasterConnector('user_master', 'DummyP4S$W0RD')
 
