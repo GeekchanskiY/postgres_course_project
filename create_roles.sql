@@ -9,16 +9,6 @@ end if;
 end;
 $$;
 
-
-do $$
-begin
-if ((select rolname from pg_roles where rolname = 'news_manager') is null)
-then 
-	create role news_manager LOGIN;
-end if;
-end;
-$$;
-
 do $$
 begin
 if ((select rolname from pg_roles where rolname = 'crypto_manager') is null)

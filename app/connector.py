@@ -57,6 +57,19 @@ class CustomConnector:
                 return list(result.all())
             except DBAPIError as e:
                 self._handle_exception(str(e.orig))
+            except Exception:
+                return None
+
+    def _exec_no_transaction(self, query_str: str) -> list | None:
+        with self.engine.connect() as conn:
+            try:
+                result = conn.execute(text(query_str))
+                # conn.execute(text('COMMIT'))
+                return list(result.all())
+            except DBAPIError as e:
+                self._handle_exception(str(e.orig))
+            except Exception:
+                return None
 
     def _get_exception_text(self, orig: str) -> str:
         return orig.split('\n')[0]
