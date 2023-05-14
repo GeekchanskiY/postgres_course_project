@@ -15,34 +15,39 @@ from JWT_logic import JWTHolder
 
 
 class InvalidPrivelegeExceprion(Exception):
-    def __init__(self, message) -> None:
+    def __init__(self, message: str) -> None:
         self.message = message
         super().__init__(self.message)
 
 
 class RoleDoesNotExists(Exception):
-    def __init__(self, message) -> None:
+    def __init__(self, message: str) -> None:
         self.message = message
         super().__init__(self.message)
 
 
 class UserAlreadyExistsException(Exception):
-    def __init__(self, message) -> None:
+    def __init__(self, message: str) -> None:
         self.message = message
         super().__init__(self.message)
 
 
 class UserDoesNotExistsException(Exception):
-    def __init__(self, message) -> None:
+    def __init__(self, message: str) -> None:
         self.message = message
         super().__init__(message)
 
 
 class WeakPasswordException(Exception):
-    def __init__(self, message) -> None:
+    def __init__(self, message: str) -> None:
         self.message = message
         super().__init__(message)
 
+
+class DoesNotExistsException(Exception):
+    def __init__(self, message: str) -> None:
+        self.message = message
+        super().__init__(message)
 
 #
 # Connectors
@@ -109,6 +114,12 @@ class CustomConnector:
             raise UserAlreadyExistsException(e_text)
         elif e_text == 'User does not exists!':
             raise UserDoesNotExistsException(e_text)
+        elif e_text == 'Not allowed!':
+            raise InvalidPrivelegeExceprion(e_text)
+        elif e_text == 'Crypto does not exists!' or \
+                e_text == 'Token does not exists!' or \
+                e_text == 'News does not exists!':
+            raise DoesNotExistsException(e_text)
         else:
             raise Exception('New_exception: ' + e_text)
 

@@ -202,12 +202,27 @@ begin
 	select crypto_id from crypto where crypto_name = shot_crypto_name into shot_crypto_id; 
 	if (shot_crypto_id is null)
 	then
-		raise exception 'Wrong crypto name!';
+		raise exception 'Crypto does not exists!';
 	end if;
 	insert into crypto_shot(shot_time, price, market_cap, volume, transactions, crypto_id)
 	values (shot_shot_time::timestamp, shot_price, shot_market_cap, shot_volume, shot_transactions, shot_crypto_id);
 
 	return;
+end;
+$$;
+
+create or replace function get_my_id(
+	jwt varchar(255)
+) returns INTEGER language plpgsql as $$
+declare
+	uid INT;
+begin
+	select user_id from auth_tokens where auth_token = jwt into uid;
+	if (uid is null)
+	then
+		raise exception 'Token does not exists!';
+	end if;
+	return uid;
 end;
 $$;
 
@@ -227,7 +242,7 @@ begin
 		select crypto_id from crypto where crypto_name = ncrypto_name into ncrypto_id; 
 		if (ncrypto_id is null)
 		then
-			raise exception 'Wrong crypto name!';
+			raise exception 'Crypto does not exists!';
 		end if;
 	
 	view_name := FORMAT('crypto_shot_view_%s', crypto_name);
