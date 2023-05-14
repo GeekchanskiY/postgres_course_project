@@ -61,29 +61,41 @@ class CustomConnector:
         if self._get_role() != self.rolename:
             raise InvalidPrivelegeExceprion(f'You do not have \'{self.rolename}\' role!')
 
-    def _get_role(self) -> str:
+    def _get_role(self) -> str | None:
         rolname = self._exec(
             'SELECT rolname '
             'FROM pg_roles '
             'WHERE rolname = current_user;'
-        )[0][0]
-        return str(rolname)
+        )
+        if rolname is not None:
+            return str(rolname[0][0])
 
-    def _exec(self, query_str: str) -> list:
+    def _exec(self, query_str: str) -> list | None:
         # self.cur.execute(query_str)
         # res = self.cur.fetchall()
         with self.engine.connect() as conn:
-            result = conn.execute(text(query_str))
-            conn.execute(text('COMMIT'))
-        return list(result.all())
+            try:
+                result = conn.execute(text(query_str))
+                conn.execute(text('COMMIT'))
+                return list(result.all())
+            except DBAPIError as e:
+                self._handle_exception(str(e.orig))
 
     def _get_exception_text(self, orig: str) -> str:
         return orig.split('\n')[0]
 
     def _handle_exception(self, e_text: str) -> None:
+
         e_text = self._get_exception_text(e_text)
+
+        # TODO: add additional parameters
+        # to make Exception more informative
+
         if e_text == "Password is weak!":
             raise WeakPasswordException(e_text)
+        elif e_text == 'User alredy exists!':
+            raise UserAlreadyExistsException(e_text)
+
         else:
             raise Exception(e_text)
 
