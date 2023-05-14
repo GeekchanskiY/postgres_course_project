@@ -74,6 +74,7 @@ class CustomConnector:
         # res = self.cur.fetchall()
         with self.engine.connect() as conn:
             result = conn.execute(text(query_str))
+            conn.execute(text('COMMIT'))
         return list(result.all())
 
     def _get_exception_text(self, orig: str) -> str:
@@ -83,6 +84,8 @@ class CustomConnector:
         e_text = self._get_exception_text(e_text)
         if e_text == "Password is weak!":
             raise WeakPasswordException(e_text)
+        else:
+            raise Exception(e_text)
 
 
 class CustomPostgresConnector(CustomConnector):
@@ -134,7 +137,7 @@ class CryptoMasterConnector(CustomConnector):
 
 if __name__ == '__main__':
     admin = CustomPostgresConnector('postgres', 'postgres')
-    admin.create_user("Dimka", "1234", "superuser")
-
+    admin.create_user("Dimka", "DimkaP4S$W0RD", "superuser")
+    print(admin._exec('SELECT * FROM USERS'))
     user = UserMasterConnector('user_master', 'DummyP4S$W0RD')
 
