@@ -5,7 +5,7 @@ import jwt
 
 
 class JWTHolder:
-    current_token: str | None
+    current_token: str | None = None
     algorithm = 'HS256'
     secret = 'secret'
     username: str
@@ -13,7 +13,8 @@ class JWTHolder:
 
     lifetime: timedelta = timedelta(minutes=30)
 
-    def __init__(self, username: str, algorithm: str | None = None,
+    def __init__(self, username: str,
+                 algorithm: str | None = None,
                  secret: str | None = None):
         self.username = username
         # self.uid = uid

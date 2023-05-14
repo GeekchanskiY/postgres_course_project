@@ -237,18 +237,3 @@ begin
 end;
 $$;
 
-select user_id, user_name, salt, user_password from users where user_name = 'Dimka';
--- select * from user_role;
--- select * from users;
---select * from users;
---select create_standard_user('user1234', 'paS$1234');
---delete from user_role where role_id = 4;
---select create_user('user123', 'paS$1234', 1);
---select crypt('paS$1234', '$2a$06$EY0aB1bWDR3TCmIJtKdNru');
---drop function login_user;
---select login_user('user123', 'paS$1234', 'sample_token', '2023-05-10 10:30:00');
--- select * from crypto;
--- update auth_tokens set expires_in = current_timestamp + interval '1 hour', user_id = 1 where auth_token = 'sample_token';
--- select create_user('Dimka', 'DimkaP4S$W0RD', 'superuser');
-delete from users where user_name = 'Dimka';
--- select get_crypto_shots('2023-05-10 10:30:00', '2023-05-10 10:30:00', 'TestZ');

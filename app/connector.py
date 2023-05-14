@@ -120,7 +120,7 @@ class CustomPostgresConnector(CustomConnector):
 
     available_roles = ['superuser', 'user', 'news_author', 'admin']
 
-    token_live_time = timedelta(minutes=30)
+    # token_live_time = timedelta(minutes=30)
 
     def __init__(self, user, password):
         super().__init__(user, password)
@@ -138,12 +138,12 @@ class CustomPostgresConnector(CustomConnector):
         return str(res)
 
     def login_user(self, username, password) -> str:
-        token_expires_in = datetime.now() + self.token_live_time
-
-        self.jwt = JWTHolder()
+        self.jwt = JWTHolder(username)
+        token = self.jwt.get_jwt()
+        exp_in = self.jwt.expires_in
 
         res = self._exec(
-            f"select login_user('{username}', '{password}')"
+            f"select login_user('{username}', '{password}', '{token}', '{exp_in}' )"
         )
         return str(res)
 
@@ -179,5 +179,7 @@ if __name__ == '__main__':
     admin = CustomPostgresConnector('postgres', 'postgres')
     admin.create_user("Dimka", "DimkaP4S$W0RD", "superuser")
     print(admin._exec('SELECT * FROM USERS'))
-    admin.delete_user("Dimka", "DimkaP4S$W0RD")
+    admin.login_user("Dimka", "DimkaP4S$W0RD")
+    print(admin._exec('select * FROM auth_tokens'))
+    # admin.delete_user("Dimka", "DimkaP4S$W0RD")
     user = UserMasterConnector('user_master', 'DummyP4S$W0RD')
