@@ -254,5 +254,3 @@ begin
 end;
 $$;
 
-delete from users where user_name = 'Dimka';
-

@@ -156,7 +156,7 @@ class UserMasterConnector(CustomConnector):
 class CryptoMasterConnector(CustomConnector):
     ''' Crypto master with crypto manage priveleges and methods '''
 
-    rolename = 'crypto_manager'
+    rolename = 'crypto_master'
 
     def __init__(self, user, password):
         super().__init__(user, password)
