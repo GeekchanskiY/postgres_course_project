@@ -3,7 +3,7 @@ create or replace function create_user(
 	new_user_name varchar(255),
 	new_user_password varchar(255),
 	new_user_role_name varchar(255)
-) returns varchar(255) language plpgsql as $$
+) returns varchar(255) SECURITY DEFINER language plpgsql as $$
 declare 
 	new_user_role_id INT;
 	res varchar(255);
@@ -46,7 +46,7 @@ $$;
 create or replace function delete_user(
 	old_user_name varchar(255),
 	old_user_password varchar(255)
-) returns varchar(255) language plpgsql as $$
+) returns varchar(255) SECURITY DEFINER language plpgsql as $$
 declare 
 	uid INT;
 	login varchar(255);
@@ -76,7 +76,7 @@ $$;
 create or replace function create_standard_user(
 	new_user_name varchar(255),
 	new_user_password varchar(255)
-)returns varchar(255) language plpgsql as $$
+)returns varchar(255) SECURITY definer language plpgsql as $$
 declare 
 	new_user_role_id INT;
 	res varchar(255);
@@ -119,7 +119,7 @@ create or replace function login_user(
 	pass varchar(255),
 	jwt varchar(255),
 	uexp_in varchar(255)
-) returns varchar(255) language plpgsql as $$
+) returns varchar(255) SECURITY DEFINER language plpgsql as $$
 declare
 	user_salt varchar(255);
 	hashed_password varchar(255);

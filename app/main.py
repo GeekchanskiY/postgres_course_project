@@ -1,6 +1,8 @@
 ''' Main app with some primary logic '''
 # from JWT_logic import JWTHolder
 from connector import CustomConnector, UserMasterConnector, CryptoMasterConnector
+from sample_data import cryptos, users
+
 
 import time
 
@@ -79,13 +81,23 @@ class App:
 
         self.dev_connector._exec(sql_commands)
 
-
+    # WorkFlow functions
     @measure_execution_time
     def get_stats(self):
         pass
 
     @measure_execution_time
+    def fill_data(self):
+        for user in users:
+            if user['role'] == 'superuser':
+                self.user_manager.create_user(user['username'], user['password'],
+                                              user['role'])
+            else:
+                self.user_manager.create_standard_user(user['username'], user['password'])
+
+    @measure_execution_time
     def drop(self):
+        ''' Drops all the data inside database. Use carefully. '''
         with open('/home/geek/repos/pg_course_project/drop_tables.sql', 'r') as file:
             sql_commands = file.read()
 
@@ -104,6 +116,7 @@ class App:
 
 def main():
     app = App('postgres', 'postgres')
+    app.fill_data()
 
     drop_all = input("\n Drop database? \n (y/n) \n")
     if drop_all == "y":

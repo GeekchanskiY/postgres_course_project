@@ -87,7 +87,8 @@ begin
         end if;
     end loop;
     
-    if num_uppercase = 0 or num_lowercase = 0 or num_digits = 0 or num_special = 0 or repeated_chars > 0 then
+    -- or repeated chars > 0
+    if num_uppercase = 0 or num_lowercase = 0 or num_digits = 0 or num_special = 0 then
         return false;
     end if;
     

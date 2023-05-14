@@ -152,6 +152,48 @@ class UserMasterConnector(CustomConnector):
     def __init__(self, user, password):
         super().__init__(user, password)
 
+    def create_user(self, username, password, role) -> str:
+        res = self._exec(
+            f"select create_user('{username}', '{password}', '{role}')"
+        )
+        return str(res)
+
+    def create_standard_user(self, username, password) -> str:
+        res = self._exec(
+            f"select create_standard_user('{username}', '{password}')"
+        )
+        return str(res)
+
+    def delete_user(self, username, password) -> str:
+        res = self._exec(
+            f"select delete_user('{username}', '{password}')"
+        )
+        return str(res)
+
+    def login_user(self, username, password) -> str:
+        self.jwt = JWTHolder(username)
+        token = self.jwt.get_jwt()
+        exp_in = self.jwt.expires_in
+
+        res = self._exec(
+            f"select login_user('{username}', '{password}', '{token}', '{exp_in}' )"
+        )
+        return str(res)
+
+    def _get_my_id(self):
+        token = self.jwt.get_jwt()
+
+        res = self._exec(
+            f"select get_my_id('{token}')"
+        )
+        if res is not None:
+            res = res[0][0]
+            self.uid = res
+
+        return res
+
+
+
 
 class CryptoMasterConnector(CustomConnector):
     ''' Crypto master with crypto manage priveleges and methods '''
