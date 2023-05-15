@@ -81,19 +81,38 @@ class App:
 
         self.dev_connector._exec(sql_commands)
 
+        #with open('/home/geek/repos/pg_course_project/create_users.sql', 'r') as file:
+        #    sql_commands = file.read()
+
+        #self.dev_connector._exec(sql_commands)
+
+
     # WorkFlow functions
     @measure_execution_time
     def get_stats(self):
         pass
 
+    def create_crypto(self, user_token, **params):
+        # self.crypto_manager.
+        pass
+
     @measure_execution_time
     def fill_data(self):
+        self.user_manager.login_user('admin', 'superP4$Sw0rD')
         for user in users:
             if user['role'] == 'superuser':
-                self.user_manager.create_user(user['username'], user['password'],
-                                              user['role'])
+                try:
+                    self.user_manager.create_user(user['username'], user['password'],
+                                                  user['role'])
+                except Exception:
+                    print(f'user {user["username"]} already exists!')
+                login = self.user_manager.login_user(user['username'], user['password'])
+                print(f'Login user {user["username"]} status is {login}')
             else:
-                self.user_manager.create_standard_user(user['username'], user['password'])
+                try:
+                    self.user_manager.create_standard_user(user['username'], user['password'])
+                except Exception:
+                    print(f'user {user["username"]} already exists')
 
     @measure_execution_time
     def drop(self):
@@ -112,6 +131,8 @@ class App:
             sql_commands = file.read()
 
         self.dev_connector._exec(sql_commands)
+
+        self.user_manager.redis.flush()
 
 
 def main():

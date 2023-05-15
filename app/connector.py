@@ -9,6 +9,8 @@ from sqlalchemy.exc import DBAPIError
 
 from JWT_logic import JWTHolder
 
+from redis_connector import RedisConnector
+
 from exceptions import CustomExceptions as exc
 
 
@@ -18,6 +20,8 @@ class CustomConnector:
     rolename = 'postgres'
 
     jwt: JWTHolder
+
+    redis: RedisConnector
 
     uid: int
 
@@ -31,6 +35,7 @@ class CustomConnector:
         self.engine = create_engine(
             f'postgresql+psycopg2://{user}:{password}@0.0.0.0/postgres'
         )
+        self.redis = RedisConnector()
         self._check_role()
         # self.cur = self.conn.cursor()
 
@@ -129,6 +134,7 @@ class CustomPostgresConnector(CustomConnector):
         res = self._exec(
             f"select login_user('{username}', '{password}', '{token}', '{exp_in}' )"
         )
+        self.redis.set_jwt(username, token, exp_in)
         return str(res)
 
     def _get_my_id(self):
@@ -179,15 +185,22 @@ class UserMasterConnector(CustomConnector):
         token = self.jwt.get_jwt()
         exp_in = self.jwt.expires_in
 
+        if self.redis.get_jwt(username) is not None:
+            old_token = self.redis.get_jwt(username)
+
+            res = self._exec(f"select update_login_user('{username}', '{password}', '{token}', '{exp_in}', '{old_token}')")
+            self.redis.set_jwt(username, token, exp_in)
+            return str(res)
+
         res = self._exec(
             f"select login_user('{username}', '{password}', '{token}', '{exp_in}' )"
         )
+        self.redis.set_jwt(username, token, exp_in)
         return str(res)
 
     def _get_my_id(self):
         if self.jwt is None:
-            raise exc.InvalidPrivelegeExceprion('You should auth first!'
-                    )
+            raise exc.InvalidPrivelegeExceprion('You should auth first!')
         token = self.jwt.get_jwt()
 
         res = self._exec(
@@ -200,15 +213,18 @@ class UserMasterConnector(CustomConnector):
         return res
 
 
-
-
 class CryptoMasterConnector(CustomConnector):
     ''' Crypto master with crypto manage priveleges and methods '''
 
     rolename = 'crypto_master'
 
+    jwt: JWTHolder | None = None
+
     def __init__(self, user, password):
         super().__init__(user, password)
+
+    def create_crypro(self, username, name, symbol, image, price, volume, market_cap, transactions):
+        pass
 
 
 if __name__ == '__main__':

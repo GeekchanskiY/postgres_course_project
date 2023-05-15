@@ -15,7 +15,7 @@ create table if not exists USERS (
 create table if not exists AUTH_TOKENS (
 	user_id INT unique not null,
 	expires_in TIMESTAMP default current_timestamp not null,
-	auth_token varchar(255) not null,
+	auth_token varchar(255) unique not null,
 	
 	constraint FK_USER foreign key(user_id) references USERS(user_id) on delete cascade
 ) tablespace TS_USER;
