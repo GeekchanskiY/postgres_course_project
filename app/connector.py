@@ -149,10 +149,14 @@ class UserMasterConnector(CustomConnector):
 
     rolename = 'user_master'
 
+    jwt: JWTHolder | None = None
+
     def __init__(self, user, password):
         super().__init__(user, password)
 
     def create_user(self, username, password, role) -> str:
+        if self.jwt is None:
+            raise exc.InvalidPrivelegeExceprion('You should auth first!')
         res = self._exec(
             f"select create_user('{username}', '{password}', '{role}')"
         )
@@ -181,6 +185,9 @@ class UserMasterConnector(CustomConnector):
         return str(res)
 
     def _get_my_id(self):
+        if self.jwt is None:
+            raise exc.InvalidPrivelegeExceprion('You should auth first!'
+                    )
         token = self.jwt.get_jwt()
 
         res = self._exec(

@@ -165,7 +165,7 @@ CREATE OR replace FUNCTION create_crypto(
 declare
 	is_allowed bool;
 begin
-	select check_user_access(publisher_id, jwt, 'admin') into is_allowed;
+	select check_user_access(publisher_id, jwt, 'superuser') into is_allowed;
 	if (is_allowed = false)
 	then
 		
@@ -174,6 +174,35 @@ begin
 	
 	insert into crypto(crypto_name, symbol, image, price, volume, market_cap, transactions_count)
 	values (new_crypto_name, new_symbol, new_image, new_price, new_volume, new_market_cap, new_transaction_count);
+	
+	return;
+end;
+$$;
+
+CREATE OR replace FUNCTION delete_crypto(
+	publisher_id int,
+	jwt varchar(255),
+	old_crypto_name varchar(255),
+	
+) returns void language plpgsql as $$
+declare
+	is_allowed bool;
+	old_crypto_id int;
+begin
+	select check_user_access(publisher_id, jwt, 'superuser') into is_allowed;
+	if (is_allowed = false)
+	then
+		
+		raise exception 'Not allowed!';
+	end if;
+
+	select crypto_id from crypto where crypto_name = old_crypto_name into old_crypto_id;
+	if (old_crypto_id is null)
+	then
+		raise exception 'crypto does not exists!';
+	end if;
+	
+	delete from crypto where crypto_id = old_crypto_id;
 	
 	return;
 end;
@@ -194,7 +223,7 @@ declare
 	is_allowed bool;
 	shot_crypto_id INT;
 begin
-	select check_user_access(publisher_id, jwt, 'admin') into is_allowed;
+	select check_user_access(publisher_id, jwt, 'superuser') into is_allowed;
 	if (is_allowed = false)
 	then
 		raise exception 'Not allowed!';
