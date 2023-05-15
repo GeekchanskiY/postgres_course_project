@@ -40,7 +40,7 @@ cryptos = [
     {
         'name': 'Etherium',
         'symbol': 'ETH',
-        'image': 'Ether.png',
+        'image': 'Etherium.png',
         'price': 26886.10,
         'volume': 10180726.908,
         'market_cap': 522151313.440,
@@ -148,8 +148,35 @@ cryptos = [
     },
 
 
-
-
-
-
 ]
+
+
+def get_sample_shots(start_price: float, amount: int) -> list:
+    import random
+    prices = []
+    caps = []
+    volumes = []
+    transactions = []
+
+    prev_price = start_price
+    for i in range(amount):
+        greater = random.choice([True, False])
+        if greater:
+            new_price = prev_price + random.uniform(i, 10000.3)
+        else:
+            new_price = prev_price - random.uniform(i, 10000.5)
+            if new_price <= 0:
+                new_price = random.uniform(5.3, 12000.21311)
+        new_price = round(new_price, 5)
+        old_price = new_price
+        prices.append(old_price)
+
+        caps.append(round(random.uniform(i, 10000.3), 5))
+        volumes.append(round(random.uniform(i, 10000.3), 5))
+        transactions.append(random.randint(i, 1000))
+
+    return [prices, caps, volumes, transactions]
+
+
+if __name__ == "__main__":
+    print(get_sample_shots(1000, 15))

@@ -155,7 +155,7 @@ class UserMasterConnector(CustomConnector):
 
     rolename = 'user_master'
 
-    jwt: JWTHolder | None = None
+    jwt: JWTHolder
 
     def __init__(self, user, password):
         super().__init__(user, password)
@@ -196,11 +196,10 @@ class UserMasterConnector(CustomConnector):
             f"select login_user('{username}', '{password}', '{token}', '{exp_in}' )"
         )
         self.redis.set_jwt(username, token, exp_in)
+        self._get_my_id()
         return str(res)
 
     def _get_my_id(self):
-        if self.jwt is None:
-            raise exc.InvalidPrivelegeExceprion('You should auth first!')
         token = self.jwt.get_jwt()
 
         res = self._exec(
@@ -218,13 +217,24 @@ class CryptoMasterConnector(CustomConnector):
 
     rolename = 'crypto_master'
 
-    jwt: JWTHolder | None = None
-
     def __init__(self, user, password):
         super().__init__(user, password)
 
-    def create_crypro(self, username, name, symbol, image, price, volume, market_cap, transactions):
-        pass
+    def create_crypro(self, user_id, jwt, name, symbol, image_filename, price, volume, market_cap, transactions):
+        # read image to bytea
+        with open(f'/home/geek/repos/pg_course_project/app/images/{image_filename}', 'rb') as f:
+            image = f.read().hex()
+        res = self._exec(
+            f"select create_crypto({user_id}, '{jwt}', '{name}', '{symbol}', '{image}', {price}, {volume}, {market_cap}, "
+            f"{transactions})"
+        )
+        return res
+
+    def create_crypto_shot(self, user_id, jwt, name, time, price, cap, volume, transactions):
+        res = self._exec(
+            f"select create_crypto_shot('{user_id}', '{jwt}', '{name}', '{time}', {price}, {cap}, {volume}, {transactions})"
+        )
+        return res
 
 
 if __name__ == '__main__':

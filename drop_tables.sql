@@ -1,3 +1,5 @@
+delete from crypto;
+
 drop table if exists crypto_review;
 drop table if exists crypto_favourite;
 drop table if exists crypto_shot;

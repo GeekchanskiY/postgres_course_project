@@ -1,7 +1,8 @@
 ''' Main app with some primary logic '''
 # from JWT_logic import JWTHolder
+from datetime import datetime, timedelta
 from connector import CustomConnector, UserMasterConnector, CryptoMasterConnector
-from sample_data import cryptos, users
+from sample_data import cryptos, users, get_sample_shots
 
 
 import time
@@ -114,6 +115,41 @@ class App:
                 except Exception:
                     print(f'user {user["username"]} already exists')
 
+        self.user_manager.login_user('admin', 'superP4$Sw0rD')
+        uid = self.user_manager._get_my_id()
+        for crypto in cryptos:
+            self.crypto_manager.create_crypro(
+                uid,
+                self.user_manager.jwt.get_jwt(),
+                crypto['name'],
+                crypto['symbol'],
+                crypto['image'],
+                crypto['price'],
+                crypto['volume'],
+                crypto['market_cap'],
+                crypto['transactions']
+            )
+
+            ex_data = get_sample_shots(crypto['price'], 50)
+            curr_time = datetime.now()
+            timestamp_interval = timedelta(days=1)
+
+            # call get_jwt each time to make sure it has not outdated
+            for i in range(len(ex_data[0])):
+                curr_time = curr_time - timestamp_interval
+                self.crypto_manager.create_crypto_shot(
+                    uid,
+                    self.user_manager.jwt.get_jwt(),
+                    crypto['name'],
+                    curr_time.strftime("%Y-%m-%d %H:%M:%S"),
+                    ex_data[0][i],
+                    ex_data[1][i],
+                    ex_data[2][i],
+                    ex_data[3][i],
+                )
+
+
+
     @measure_execution_time
     def drop(self):
         ''' Drops all the data inside database. Use carefully. '''
@@ -137,9 +173,11 @@ class App:
 
 def main():
     app = App('postgres', 'postgres')
-    app.fill_data()
+    fill = input("\n Fill database? \n (y/n) \n -->")
+    if fill == "y":
+        app.fill_data()
 
-    drop_all = input("\n Drop database? \n (y/n) \n")
+    drop_all = input("\n Drop database? \n (y/n) \n -->")
     if drop_all == "y":
         app.drop()
 

@@ -211,14 +211,13 @@ CREATE OR replace FUNCTION create_crypto(
 	new_volume numeric(18, 8),
 	new_market_cap numeric(18, 8),
 	new_transaction_count INT
-) returns void language plpgsql as $$
+) returns void SECURITY definer language plpgsql as $$
 declare
 	is_allowed bool;
 begin
 	select check_user_access(publisher_id, jwt, 'superuser') into is_allowed;
 	if (is_allowed = false)
 	then
-		
 		raise exception 'Not allowed!';
 	end if;
 	
@@ -234,7 +233,7 @@ CREATE OR replace FUNCTION delete_crypto(
 	jwt varchar(255),
 	old_crypto_name varchar(255)
 	
-) returns void language plpgsql as $$
+) returns void SECURITY DEFINER language plpgsql as $$
 declare
 	is_allowed bool;
 	old_crypto_id int;
@@ -268,7 +267,7 @@ create or replace function create_crypto_shot(
 	shot_market_cap numeric(18, 8),
 	shot_volume numeric(18, 8),
 	shot_transactions INT
-) returns void language plpgsql as $$
+) returns void SECURITY DEFINER language plpgsql as $$
 declare
 	is_allowed bool;
 	shot_crypto_id INT;
@@ -294,7 +293,7 @@ $$;
 -- Get my id bases on jwt because you should not know other id's
 create or replace function get_my_id(
 	jwt varchar(255)
-) returns INTEGER language plpgsql as $$
+) returns INTEGER SECURITY DEFINER language plpgsql as $$
 declare
 	uid INT;
 begin
