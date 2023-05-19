@@ -65,6 +65,18 @@ class CustomConnector:
             except Exception:
                 return None
 
+    def _exec_select(self, query_str: str):
+        # self.cur.execute(query_str)
+        # res = self.cur.fetchall()
+        with self.engine.connect() as conn:
+            try:
+                result = conn.execute(text(query_str))
+                return result.all()
+            except DBAPIError as e:
+                self._handle_exception(str(e.orig))
+            except Exception:
+                return None
+
     def _exec_no_transaction(self, query_str: str) -> list | None:
         with self.engine.connect() as conn:
             try:
@@ -249,6 +261,12 @@ class CryptoMasterConnector(CustomConnector):
     def create_crypto_shot(self, user_id, jwt, name, time, price, cap, volume, transactions):
         res = self._exec(
             f"select create_crypto_shot('{user_id}', '{jwt}', '{name}', '{time}', {price}, {cap}, {volume}, {transactions})"
+        )
+        return res
+
+    def select_cryptos_by_page(self, user_id, jwt, page, per_page):
+        res = self._exec_select(
+            f"select get_all_crypto_by_page({user_id}, '{jwt}', {page}, {per_page})"
         )
         return res
 

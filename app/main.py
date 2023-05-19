@@ -224,7 +224,26 @@ class App:
     def example_functions(self):
         ''' runs all available functions as test '''
         self.user_manager.login_user('admin', 'superP4$Sw0rD')
+        uid = self.user_manager._get_my_id()
 
+        try:
+            pages = int(input("How many pages to display? \n int \n --> "))
+            for i in range(pages):
+                res = self.crypto_manager.select_cryptos_by_page(
+                    uid,
+                    self.user_manager.jwt.get_jwt(),
+                    i,
+                    20
+                )
+                if res is not None:
+                    print('\n \n name \t symbol \t price \t volume \t market_cap \t transactions \n')
+                    for r in res:
+                        r = str(r[0]).replace('(', '').replace(')', '').split(',')
+
+                        print(r[0], r[1], r[3], r[4], r[5], r[6])
+                    print('\n Image ignored, bytea too large for terminal :(')
+        except ValueError:
+            print("\n That's not an int... \n ")
         print(self.user_manager.toggle_like("Bitcoin"))
 
     @measure_execution_time
