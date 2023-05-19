@@ -20,3 +20,28 @@ drop function if exists get_crypto_shots(
 	
 	varchar(255)
 );
+
+drop function if exists get_crypto_month_stats(
+	int,
+	varchar(255),
+	varchar(255)
+);
+
+drop function if exists get_all_crypto_by_page(
+	int,
+	varchar(255),
+	int, 
+	int
+);
+
+
+drop function if exists get_all_crypto_comments(
+	int,
+	varchar(255),
+	varchar(255)
+);
+
+drop function if exists get_my_likes(
+	int,
+	varchar(255)
+);

@@ -90,6 +90,114 @@ end;
 $$;
 
 
+create or replace function get_all_crypto_comments(
+	publisher_id int,
+	jwt varchar(255),
+	ncrypto_name varchar(255)
+) returns table(
+	title VARCHAR(255),
+	review_text text,
+	review_time timestamp,
+	user_name varchar(255)
+)
+SECURITY definer language plpgsql
+as $$
+declare
+	is_allowed bool;
+
+	nquery text;
+
+	ncrypto_id INT;
+begin
+	select check_user_access(publisher_id, jwt, 'user') into is_allowed;
+	if (is_allowed = false)
+	then
+		raise exception 'Not allowed!';
+	end if;
+
+	
+	select crypto_id from CRYPTO where crypto_name = ncrypto_name into ncrypto_id; 
+	if (ncrypto_id is null)
+	then
+		raise exception 'Crypto does not exists!';
+	end if;
+
+	
+	
+	return query select review.title, review.review_text, review.review_time, u.user_name 
+	from crypto_review as review join
+	users as u on u.user_id = review.user_id
+	where review.crypto_id = ncrypto_id;
+	
+end;
+$$;
+
+
+create or replace function get_my_likes(
+	publisher_id int,
+	jwt varchar(255)
+) returns table(
+	crypto_name VARCHAR(255)
+)
+SECURITY definer language plpgsql
+as $$
+declare
+	is_allowed bool;
+
+	nquery text;
+
+	ncrypto_id INT;
+begin
+	select check_user_access(publisher_id, jwt, 'user') into is_allowed;
+	if (is_allowed = false)
+	then
+		raise exception 'Not allowed!';
+	end if;	
+	
+	return query select c.crypto_name 
+	from CRYPTO_FAVOURITE as fav join
+	crypto as c on fav.crypto_id = c.crypto_id 
+	where fav.user_id = publisher_id;
+end;
+$$;
+
+create or replace function search_crypto(
+	publisher_id int,
+	jwt varchar(255),
+	ncrypto_name varchar(255)
+) returns table(
+	crypto_name VARCHAR(255),
+	symbol VARCHAR(10),
+	price numeric(18, 8),
+	volume numeric(18, 8),
+	market_cap numeric(18, 8),
+	transactions_count INT
+)
+SECURITY definer language plpgsql
+as $$
+declare
+	is_allowed bool;
+
+
+	search_pattern text := '%' || ncrypto_name || '%';
+begin
+	select check_user_access(publisher_id, jwt, 'user') into is_allowed;
+	if (is_allowed = false)
+	then
+		raise exception 'Not allowed!';
+	end if;
+
+	
+	
+	return query select c.crypto_name, c.symbol, c.price, c.volume, 
+	c.market_cap, c.transactions_count from crypto as c
+	where c.crypto_name ilike search_pattern limit 100;
+	
+end;
+$$;
+
+
+
 -- select * from get_crypto_month_stats(1, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwiZXhwaXJlc19pbiI6IjIwMjMtMDUtMTkgMDg6MjM6NDUifQ.EuMYeL5o-XIGJqpHb2TOhADAlFGnkbwhb0tVZWS1ZbI', 'Bitcoin'); 
 -- select * from get_all_crypto_by_page(1, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwiZXhwaXJlc19pbiI6IjIwMjMtMDUtMTkgMDg6NTU6MzcifQ.Of-MaBk3SGEegmu1NRz3XizgQDrqWeb8Myuj9OPyNco', 50, 20); 
 

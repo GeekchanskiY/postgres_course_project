@@ -284,6 +284,20 @@ class CryptoMasterConnector(CustomConnector):
         )
         return res
 
+    def select_crypto_month_stats(self, user_id, jwt, crypto_name):
+        res = self._exec_select(
+            f"select get_crypto_month_stats({user_id}, '{jwt}', '{crypto_name}')"
+        )
+        return res
+
+    def delete_crypto(self, user_id, jwt, name):
+        res = self._exec(f"select delete_crypto({user_id}, '{jwt}', '{name}')")
+        return res
+
+    def search_crypto(self, user_id, jwt, pattern):
+        res = self._exec_select(f"select search_crypto({user_id}, '{jwt}', '{pattern}')")
+        return res
+
 
 if __name__ == '__main__':
     admin = CustomPostgresConnector('postgres', 'postgres')

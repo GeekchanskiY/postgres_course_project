@@ -73,6 +73,13 @@ class App:
 
         self.dev_connector._exec(sql_commands)
 
+        # SELECT FUNCTIONS
+
+        with open('/home/geek/repos/pg_course_project/select_functions.sql', 'r') as file:
+            sql_commands = file.read()
+
+        self.dev_connector._exec(sql_commands)
+
         # CREATE ROLES
 
         with open('/home/geek/repos/pg_course_project/create_roles.sql', 'r') as file:
@@ -128,7 +135,7 @@ class App:
 
     @measure_execution_time
     def get_stats(self):
-        pass
+        raise NotImplementedError('not ready...')
 
     @measure_execution_time
     def extreme_fill(self):
@@ -221,13 +228,14 @@ class App:
                 )
 
     @measure_execution_time
-    def example_functions(self):
+    def example_functions(self): # TODO: decreace cyclomatic complexity
         ''' runs all available functions as test '''
         self.user_manager.login_user('admin', 'superP4$Sw0rD')
         uid = self.user_manager._get_my_id()
         while True:
             print('Choose action: \n 1 - select cryptos by page \n 2 - toggle like to crypto'
-                  '\n 3 - select crypto comments \n 4 - get my likes \n 0 - exit \n')
+                  '\n 3 - select crypto comments \n 4 - get my likes \n 5 - comment'
+                  '\n 6 - get crypto month stats \n 7 - delete crypto \n 8 - search crypto \n 0 - exit \n')
             i = int(input('-->'))
             if i == 1:
                 try:
@@ -255,6 +263,55 @@ class App:
                     print(self.user_manager.get_my_fav())
                 except Exception as e:
                     print(e)
+            elif i == 5:
+                try:
+                    c = input('input crypto_name \n -->')
+                    title = input('input review title \n -->')
+                    comment = input('input review text \n -->')
+                    print(self.user_manager.comment(c, title, comment))
+                except Exception as e:
+                    print(e)
+            elif i == 6:
+                c = input('input crypto_name \n -->')
+                res = (
+                    self.crypto_manager.select_crypto_month_stats(
+                        uid,
+                        self.user_manager.jwt.get_jwt(),
+                        c
+                    )
+                )
+                if res is not None:
+                    for r in res:
+                        print(r)
+                else:
+                    print("err")
+            elif i == 7:
+                try:
+                    c = input('input crypto_name \n -->')
+                    self.crypto_manager.delete_crypto(
+                        uid,
+                        self.user_manager.jwt.get_jwt(),
+                        c
+                    )
+                    print(f'Delteted crypto {c}')
+                except Exception as e:
+                    print(e)
+            elif i == 8:
+                try:
+                    c = input('input search pattern \n -->')
+                    res = self.crypto_manager.search_crypto(
+                        uid,
+                        self.user_manager.jwt.get_jwt(),
+                        c
+                    )
+                    if res is not None:
+                        for r in res:
+                            print(r)
+                    else:
+                        print('err')
+                except Exception as e:
+                    print(e)
+
             else:
                 break
 
