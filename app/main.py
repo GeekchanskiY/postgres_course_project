@@ -149,7 +149,8 @@ class App:
                 crypto['transactions']
             )
 
-            ex_data = get_sample_shots(crypto['price'], 50)
+            # Generate stats for 2 month
+            ex_data = get_sample_shots(crypto['price'], 60)
             curr_time = datetime.now()
             timestamp_interval = timedelta(days=1)
 
