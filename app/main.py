@@ -133,6 +133,7 @@ class App:
     @measure_execution_time
     def extreme_fill(self):
         ''' fills tables with extremely large amount of data '''
+
         self.user_manager.login_user('admin', 'superP4$Sw0rD')
         uid = self.user_manager._get_my_id()
         for crypto in create_random_cryptos(1000):
