@@ -2,7 +2,7 @@
 # from JWT_logic import JWTHolder
 from datetime import datetime, timedelta
 from connector import CustomConnector, UserMasterConnector, CryptoMasterConnector
-from sample_data import cryptos, users, get_sample_shots
+from sample_data import create_random_cryptos, cryptos, users, get_sample_shots
 
 
 import time
@@ -37,6 +37,11 @@ class App:
 
     @measure_execution_time
     def startup(self):
+        with open('/home/geek/repos/pg_course_project/extensions.sql', 'r') as file:
+            sql_commands = file.read()
+
+        self.dev_connector._exec(sql_commands)
+
         with open('/home/geek/repos/pg_course_project/create_tables.sql', 'r') as file:
             sql_commands = file.read()
 
@@ -82,20 +87,57 @@ class App:
 
         self.dev_connector._exec(sql_commands)
 
-        #with open('/home/geek/repos/pg_course_project/create_users.sql', 'r') as file:
-        #    sql_commands = file.read()
+        with open('/home/geek/repos/pg_course_project/indexes.sql', 'r') as file:
+            sql_commands = file.read()
 
-        #self.dev_connector._exec(sql_commands)
+        self.dev_connector._exec(sql_commands)
 
+        # with open('/home/geek/repos/pg_course_project/create_users.sql', 'r') as file:
+        #     sql_commands = file.read()
+
+        # self.dev_connector._exec(sql_commands)
 
     # WorkFlow functions
+
     @measure_execution_time
     def get_stats(self):
         pass
 
-    def create_crypto(self, user_token, **params):
-        # self.crypto_manager.
-        pass
+    @measure_execution_time
+    def extreme_fill(self):
+        self.user_manager.login_user('admin', 'superP4$Sw0rD')
+        uid = self.user_manager._get_my_id()
+        for crypto in create_random_cryptos(1000):
+            self.crypto_manager.create_crypro(
+                uid,
+                self.user_manager.jwt.get_jwt(),
+                crypto['name'],
+                crypto['symbol'],
+                crypto['image'],
+                crypto['price'],
+                crypto['volume'],
+                crypto['market_cap'],
+                crypto['transactions']
+            )
+
+            ex_data = get_sample_shots(crypto['price'], 50)
+            curr_time = datetime.now()
+            timestamp_interval = timedelta(days=1)
+
+            # call get_jwt each time to make sure it has not outdated
+            for i in range(len(ex_data[0])):
+                curr_time = curr_time - timestamp_interval
+                self.crypto_manager.create_crypto_shot(
+                    uid,
+                    self.user_manager.jwt.get_jwt(),
+                    crypto['name'],
+                    curr_time.strftime("%Y-%m-%d %H:%M:%S"),
+                    ex_data[0][i],
+                    ex_data[1][i],
+                    ex_data[2][i],
+                    ex_data[3][i],
+                )
+
 
     @measure_execution_time
     def fill_data(self):
@@ -148,7 +190,11 @@ class App:
                     ex_data[3][i],
                 )
 
+    @measure_execution_time
+    def example_functions(self):
+        self.user_manager.login_user('admin', 'superP4$Sw0rD')
 
+        print(self.user_manager.toggle_like("Bitcoin"))
 
     @measure_execution_time
     def drop(self):
@@ -176,6 +222,14 @@ def main():
     fill = input("\n Fill database? \n (y/n) \n -->")
     if fill == "y":
         app.fill_data()
+
+    extreme = input('\n phonk? \n (y/n) \n -->')
+    if extreme == "y":
+        app.extreme_fill()
+
+    sample_funcs = input('\n sample functions? \n (y/n) \n -->')
+    if sample_funcs == "y":
+        app.example_functions()
 
     drop_all = input("\n Drop database? \n (y/n) \n -->")
     if drop_all == "y":

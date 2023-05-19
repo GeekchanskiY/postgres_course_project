@@ -178,5 +178,24 @@ def get_sample_shots(start_price: float, amount: int) -> list:
     return [prices, caps, volumes, transactions]
 
 
+def create_random_cryptos(amount: int) -> list:
+    import random
+    cryptos = []
+
+    for i in range(amount):
+        cryptos.append({
+            'name': f'CustomCoin{i}',
+            'symbol': f'CCZXC{i}',
+            'image': 'Bitcoin.png',
+            'price': round(random.uniform(1, 25000), 5),
+            'volume': round(random.uniform(1, 25000), 5),
+            'market_cap': round(random.uniform(1, 25000), 5),
+            'transactions': random.randint(1, 128000)
+        })
+
+    return cryptos
+
+
 if __name__ == "__main__":
     print(get_sample_shots(1000, 15))
+    print(create_random_cryptos(100))

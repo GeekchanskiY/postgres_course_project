@@ -211,6 +211,22 @@ class UserMasterConnector(CustomConnector):
 
         return res
 
+    def toggle_like(self, crypto_name):
+        token = self.jwt.get_jwt()
+        uid = self._get_my_id()
+        res = self._exec(
+            f"select toggle_crypto_like({uid}, '{token}', '{crypto_name}')"
+        )
+        return res
+
+    def comment(self, crypto_name, title, text):
+        token = self.jwt.get_jwt()
+        uid = self._get_my_id()
+        res = self._exec(
+            f"select crypto_comment({uid}, '{token}', '{crypto_name}', '{title}', '{text}')"
+        )
+        return res
+
 
 class CryptoMasterConnector(CustomConnector):
     ''' Crypto master with crypto manage priveleges and methods '''

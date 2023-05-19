@@ -289,6 +289,78 @@ begin
 end;
 $$;
 
+create or replace function toggle_crypto_like(publisher_id int, jwt varchar, cname varchar(255))
+returns varchar(255) security definer language plpgsql as $$
+declare 
+	is_allowed bool;
+	current_status bool;
+	ccrypto_id int;
+begin
+	select check_user_access(publisher_id, jwt, 'user') into is_allowed;
+	if (is_allowed = false)
+	then
+		raise exception 'Not allowed!';
+	end if;
+
+	select crypto_id from crypto where crypto_name = cname into ccrypto_id;
+	if (ccrypto_id is null)
+	then
+		raise exception 'Crypto does not exists!';
+	end if;
+	
+	if (
+	(select crypto_id from CRYPTO_FAVOURITE where crypto_id = ccrypto_id
+	and user_id = publisher_id) is null) 
+	then
+		insert into CRYPTO_FAVOURITE(user_id, crypto_id)
+		values (publisher_id, ccrypto_id);
+		return 'liked';
+	end if;
+	
+	delete from CRYPTO_FAVOURITE where crypto_id = ccrypto_id
+	and user_id = publisher_id;
+	return 'like removed';
+
+end;
+$$;
+
+create or replace function crypto_comment(
+publisher_id int, jwt varchar, cname varchar(255),
+ctitle varchar(255), creview_text text)
+returns varchar(255) security definer language plpgsql as $$
+declare 
+	is_allowed bool;
+	current_status bool;
+	ccrypto_id int;
+begin
+	select check_user_access(publisher_id, jwt, 'user') into is_allowed;
+	if (is_allowed = false)
+	then
+		raise exception 'Not allowed!';
+	end if;
+
+	select crypto_id from crypto where crypto_name = cname into ccrypto_id;
+	if (ccrypto_id is null)
+	then
+		raise exception 'Crypto does not exists!';
+	end if;
+	
+	if (
+	(select crypto_id from crypto_review where crypto_id = ccrypto_id
+	and user_id = publisher_id) is null) 
+	then
+		insert into CRYPTO_review(user_id, crypto_id, title, review_text)
+		values (publisher_id, ccrypto_id, ctitle, creview_text);
+		return 'review added';
+	end if;
+	
+	
+	update CRYPTO_review set title = ctitle, review_text = creview_text
+	where crypto_id = ccrypto_id and user_id = publisher_id;
+	return 'review updated';
+end;
+$$;
+
 
 -- Get my id bases on jwt because you should not know other id's
 create or replace function get_my_id(
