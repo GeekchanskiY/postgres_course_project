@@ -71,7 +71,7 @@ class CustomConnector:
         with self.engine.connect() as conn:
             try:
                 result = conn.execute(text(query_str))
-                return result.all()
+                return result.fetchall()
             except DBAPIError as e:
                 self._handle_exception(str(e.orig))
             except Exception:
@@ -239,6 +239,14 @@ class UserMasterConnector(CustomConnector):
         )
         return res
 
+    def get_my_fav(self):
+        token = self.jwt.get_jwt()
+        uid = self._get_my_id()
+        res = self._exec(
+            f"select get_my_likes({uid}, '{token}')"
+        )
+        return res
+
 
 class CryptoMasterConnector(CustomConnector):
     ''' Crypto master with crypto manage priveleges and methods '''
@@ -267,6 +275,12 @@ class CryptoMasterConnector(CustomConnector):
     def select_cryptos_by_page(self, user_id, jwt, page, per_page):
         res = self._exec_select(
             f"select get_all_crypto_by_page({user_id}, '{jwt}', {page}, {per_page})"
+        )
+        return res
+
+    def select_crypto_comments(self, user_id, jwt, crypto_name):
+        res = self._exec_select(
+            f"select get_all_crypto_comments({user_id}, '{jwt}', '{crypto_name}')"
         )
         return res
 

@@ -225,7 +225,42 @@ class App:
         ''' runs all available functions as test '''
         self.user_manager.login_user('admin', 'superP4$Sw0rD')
         uid = self.user_manager._get_my_id()
+        while True:
+            print('Choose action: \n 1 - select cryptos by page \n 2 - toggle like to crypto'
+                  '\n 3 - select crypto comments \n 4 - get my likes \n 0 - exit \n')
+            i = int(input('-->'))
+            if i == 1:
+                try:
+                    self.select_cryptos_by_pg()
+                except Exception as e:
+                    print(e)
+            elif i == 2:
+                try:
+                    z = input('Input crypto_name \n -->')
+                    print(self.user_manager.toggle_like(z))
+                except Exception as e:
+                    print(e)
+            elif i == 3:
+                try:
+                    z = input('Input crypto_name \n -->')
+                    print(self.crypto_manager.select_crypto_comments(
+                        uid,
+                        self.user_manager.jwt.get_jwt(),
+                        z
+                    ))
+                except Exception as e:
+                    print(e)
+            elif i == 4:
+                try:
+                    print(self.user_manager.get_my_fav())
+                except Exception as e:
+                    print(e)
+            else:
+                break
 
+    @measure_execution_time
+    def select_cryptos_by_pg(self):
+        uid = self.user_manager._get_my_id()
         try:
             pages = int(input("How many pages to display? \n int \n --> "))
             for i in range(pages):
@@ -244,7 +279,6 @@ class App:
                     print('\n Image ignored, bytea too large for terminal :(')
         except ValueError:
             print("\n That's not an int... \n ")
-        print(self.user_manager.toggle_like("Bitcoin"))
 
     @measure_execution_time
     def drop(self):
