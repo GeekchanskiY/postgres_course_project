@@ -37,35 +37,55 @@ class App:
 
     @measure_execution_time
     def startup(self):
+        ''' Auto-executing on startup scripts '''
+        # TODO: create better tablespace management
+
+        # CREATE TABLESPACES
+
+        try:
+            with open('/home/geek/repos/pg_course_project/create_tablespaces.sql', 'r') as file:
+                sql_commands = file.read()
+
+            self.dev_connector._exec(sql_commands)
+        except Exception as e:
+            str(e)
+            print("Tablespaces already exists, skipping")
+            pass
+
+        # CREATE EXTENSIONS
+
         with open('/home/geek/repos/pg_course_project/extensions.sql', 'r') as file:
             sql_commands = file.read()
 
         self.dev_connector._exec(sql_commands)
+
+        # CREATE TABLES
 
         with open('/home/geek/repos/pg_course_project/create_tables.sql', 'r') as file:
             sql_commands = file.read()
 
         self.dev_connector._exec(sql_commands)
 
+        # CREATE FUNCTIONS
+
         with open('/home/geek/repos/pg_course_project/functions.sql', 'r') as file:
             sql_commands = file.read()
 
         self.dev_connector._exec(sql_commands)
+
+        # CREATE ROLES
 
         with open('/home/geek/repos/pg_course_project/create_roles.sql', 'r') as file:
             sql_commands = file.read()
 
         self.dev_connector._exec(sql_commands)
 
-        # with open('/home/geek/repos/pg_course_project/create_tablespaces.sql', 'r') as file:
-        #     sql_commands = file.read()
-
-        # self.dev_connector._exec(sql_commands)
-
         with open('/home/geek/repos/pg_course_project/triggers.sql', 'r') as file:
             sql_commands = file.read()
 
         self.dev_connector._exec(sql_commands)
+
+        # CREATE Security functions
 
         with open('/home/geek/repos/pg_course_project/Security_functions.sql', 'r') as file:
             sql_commands = file.read()
@@ -77,15 +97,22 @@ class App:
 
         self.dev_connector._exec(sql_commands)
 
+        # CREATE MANAGER USERS
+
         with open('/home/geek/repos/pg_course_project/create_managers.sql', 'r') as file:
             sql_commands = file.read()
 
         self.dev_connector._exec(sql_commands)
 
+        # CREATE DEFAULT USER (superuser)
+        # (analog of django's on-init superuser)
+
         with open('/home/geek/repos/pg_course_project/create_default_users.sql', 'r') as file:
             sql_commands = file.read()
 
         self.dev_connector._exec(sql_commands)
+
+        # CREATE INDEXES
 
         with open('/home/geek/repos/pg_course_project/indexes.sql', 'r') as file:
             sql_commands = file.read()
@@ -105,6 +132,7 @@ class App:
 
     @measure_execution_time
     def extreme_fill(self):
+        ''' fills tables with extremely large amount of data '''
         self.user_manager.login_user('admin', 'superP4$Sw0rD')
         uid = self.user_manager._get_my_id()
         for crypto in create_random_cryptos(1000):
@@ -138,9 +166,9 @@ class App:
                     ex_data[3][i],
                 )
 
-
     @measure_execution_time
     def fill_data(self):
+        ''' fills with small amount of example data '''
         self.user_manager.login_user('admin', 'superP4$Sw0rD')
         for user in users:
             if user['role'] == 'superuser':
@@ -192,6 +220,7 @@ class App:
 
     @measure_execution_time
     def example_functions(self):
+        ''' runs all available functions as test '''
         self.user_manager.login_user('admin', 'superP4$Sw0rD')
 
         print(self.user_manager.toggle_like("Bitcoin"))

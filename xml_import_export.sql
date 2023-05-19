@@ -54,8 +54,8 @@ BEGIN
 END;
 $$ LANGUAGE PLPGSQL;
 
-create extension adminpack;
-select export_database('/var/lib/postgresql/data/database.xml');
+
+-- select export_database('/var/lib/postgresql/data/database.xml');
 
 
 
