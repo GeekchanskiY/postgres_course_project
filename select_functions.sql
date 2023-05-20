@@ -7,7 +7,10 @@ create or replace function get_crypto_month_stats(
 	price numeric(18, 8),
 	market_cap numeric(18, 8),
 	volume numeric(18, 8),
-	transactions INT
+	transactions INT,
+	diff numeric(18, 8),
+	diffcap numeric(18,8)
+	
 ) 
 SECURITY definer language plpgsql
 as $$
@@ -32,15 +35,24 @@ begin
 	end if;
 
 	view_name := FORMAT('crypto_shot_view_%s', ncrypto_name);
--- raise exception '%', view_name;
-	nquery := FORMAT('SELECT shot_time, price, market_cap, volume, transactions from %s 
-	where shot_time >= DATE_TRUNC(''month'', CURRENT_TIMESTAMP) - INTERVAL ''1 month'' order by shot_time;',
+	--raise exception '%', view_name;
+	nquery := FORMAT('SELECT shot_time, price, market_cap, volume, transactions, diff, diffcap from %s 
+	where shot_time <= DATE_TRUNC(''month'', CURRENT_TIMESTAMP) + INTERVAL ''1 month'' order by shot_time;',
 	quote_ident(view_name));
 	--raise exception '%', nquery;
 	return query execute nquery;
 	
 end;
 $$;
+
+--drop function get_crypto_month_stats;
+--select get_crypto_month_stats(
+--	1,
+--	'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwiZXhwaXJlc19pbiI6IjIwMjMtMDUtMjAgMTQ6MjE6MzMifQ.gmBllgSC6ZstLzinS2RvNwZjlc7ddlV4INiICcMs1m0',
+--	'CustomCoin50'
+--);
+--  SELECT shot_time, price, market_cap, volume, transactions from "crypto_shot_view_CustomCoin50" 
+--	where shot_time <= DATE_TRUNC('month', CURRENT_TIMESTAMP) + INTERVAL '2 month' order by shot_time;
 
 create or replace function get_all_crypto_by_page(
 	publisher_id int,

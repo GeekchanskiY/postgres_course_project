@@ -1,6 +1,8 @@
 ''' Main app with some primary logic '''
 # from JWT_logic import JWTHolder
 from datetime import datetime, timedelta
+
+from redis import UnixDomainSocketConnection
 from connector import CustomConnector, UserMasterConnector, CryptoMasterConnector
 from sample_data import create_random_cryptos, cryptos, users, get_sample_shots
 
@@ -82,10 +84,6 @@ class App:
 
         # CREATE ROLES
 
-        with open('/home/geek/repos/pg_course_project/create_roles.sql', 'r') as file:
-            sql_commands = file.read()
-
-        self.dev_connector._exec(sql_commands)
 
         with open('/home/geek/repos/pg_course_project/triggers.sql', 'r') as file:
             sql_commands = file.read()
@@ -131,6 +129,12 @@ class App:
 
         # self.dev_connector._exec(sql_commands)
 
+        with open('/home/geek/repos/pg_course_project/create_roles.sql', 'r') as file:
+            sql_commands = file.read()
+
+        self.dev_connector._exec(sql_commands)
+
+
     # WorkFlow functions
 
     @measure_execution_time
@@ -138,12 +142,19 @@ class App:
         raise NotImplementedError('not ready...')
 
     @measure_execution_time
+    def compare_index_vs_view(self):
+        pass
+
+    @measure_execution_time
     def extreme_fill(self):
         ''' fills tables with extremely large amount of data '''
 
         self.user_manager.login_user('admin', 'superP4$Sw0rD')
         uid = self.user_manager._get_my_id()
+        counter = 1
         for crypto in create_random_cryptos(1000):
+            print(f"Creating crypto {crypto} (#{counter}/1000)")
+            counter += 1
             self.crypto_manager.create_crypro(
                 uid,
                 self.user_manager.jwt.get_jwt(),
@@ -157,13 +168,14 @@ class App:
             )
 
             # Generate stats for 2 month
-            ex_data = get_sample_shots(crypto['price'], 60)
+            ex_data = get_sample_shots(crypto['price'], 100)
             curr_time = datetime.now()
             timestamp_interval = timedelta(days=1)
 
             # call get_jwt each time to make sure it has not outdated
             for i in range(len(ex_data[0])):
                 curr_time = curr_time - timestamp_interval
+                print('create shot')
                 self.crypto_manager.create_crypto_shot(
                     uid,
                     self.user_manager.jwt.get_jwt(),
@@ -274,7 +286,7 @@ class App:
             elif i == 6:
                 c = input('input crypto_name \n -->')
                 res = (
-                    self.crypto_manager.select_crypto_month_stats(
+                    self.select_crypto_month_stats(
                         uid,
                         self.user_manager.jwt.get_jwt(),
                         c
@@ -288,7 +300,7 @@ class App:
             elif i == 7:
                 try:
                     c = input('input crypto_name \n -->')
-                    self.crypto_manager.delete_crypto(
+                    self.delete_crypto(
                         uid,
                         self.user_manager.jwt.get_jwt(),
                         c
@@ -299,7 +311,7 @@ class App:
             elif i == 8:
                 try:
                     c = input('input search pattern \n -->')
-                    res = self.crypto_manager.search_crypto(
+                    res = self.search_crypto(
                         uid,
                         self.user_manager.jwt.get_jwt(),
                         c
@@ -314,6 +326,33 @@ class App:
 
             else:
                 break
+
+    @measure_execution_time
+    def search_crypto(self, uid, jwt, query):
+        res = self.crypto_manager.search_crypto(
+            uid,
+            jwt,
+            query
+        )
+        return res
+
+    @measure_execution_time
+    def select_crypto_month_stats(self, uid, jwt, query):
+        res = self.crypto_manager.select_crypto_month_stats(
+            uid,
+            jwt,
+            query
+        )
+        return res
+
+    @measure_execution_time
+    def delete_crypto(self, uid, jwt, query):
+        res = self.crypto_manager.delete_crypto(
+            uid,
+            jwt,
+            query
+        )
+        return res
 
     @measure_execution_time
     def select_cryptos_by_pg(self):

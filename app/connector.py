@@ -285,7 +285,7 @@ class CryptoMasterConnector(CustomConnector):
         return res
 
     def select_crypto_month_stats(self, user_id, jwt, crypto_name):
-        res = self._exec_select(
+        res = self._exec(
             f"select get_crypto_month_stats({user_id}, '{jwt}', '{crypto_name}')"
         )
         return res

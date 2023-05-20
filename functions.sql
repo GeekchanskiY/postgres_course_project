@@ -127,6 +127,8 @@ declare
 	uid int;
 	user_token varchar(255);
 	user_pass varchar(255);
+
+	old_jwt varchar(255);
 begin
 	select user_id, user_name, salt, user_password from users where user_name = login
 	into uid, login, user_salt, hashed_password;
@@ -137,17 +139,33 @@ begin
 
 	select crypt(pass, user_salt) into user_pass;
 
-	if (user_pass = hashed_password)
+	if (user_pass != hashed_password)
 	then
 		-- Setting token to database
 		-- data is being validated on server, so there is a potential block
 		-- TODO: change this function and check token here
-		insert into auth_tokens(user_id, expires_in, auth_token) values
-		(uid, uexp_in::timestamp, jwt);
-		return 'success';
-	else
 		raise exception 'Incorrect password!';
+		--insert into auth_tokens(user_id, expires_in, auth_token) values
+		--(uid, uexp_in::timestamp, jwt);
+		--return 'success';
+		
 	end if;
+	if ((select 1 from auth_tokens where user_id = uid) is not null)
+	then
+		select auth_token from auth_tokens
+		where user_id = uid into old_jwt;
+		select update_login_user(
+			login,
+			pass,
+			jwt,
+			uexp_in,
+			old_jwt
+		) into old_jwt;
+		return 'Update user login success';
+	end if;
+	insert into auth_tokens(user_id, expires_in, auth_token) values
+	(uid, uexp_in::timestamp, jwt);
+	return 'success';
 end;
 $$;
 

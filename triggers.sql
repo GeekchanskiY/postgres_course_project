@@ -57,10 +57,16 @@ begin
 	view_name := FORMAT('crypto_shot_view_%s', depending_crypto_name);
 	wow := FORMAT(
     'CREATE MATERIALIZED VIEW %I AS
-     SELECT shot_time, price, market_cap, volume, transactions
-     FROM crypto_shot
-     WHERE crypto_id = %s
-     ORDER BY shot_time',
+     SELECT s1.shot_time, s1.price, s1.market_cap, s1.volume, s1.transactions, 
+	 s1.price - s2.price as diff, s1.market_cap - s2.market_cap as diffcap
+     FROM crypto_shot as s1
+	 join crypto_shot as s2 on 
+	 s2.shot_id = (select s3.shot_id from crypto_shot
+	 as s3 where s3.crypto_id = s1.crypto_id
+	 order by shot_time limit 1)
+     WHERE s1.crypto_id = %s
+     ORDER BY shot_time
+	 limit 30',
      view_name,
      depending_crypto_id
 	);
@@ -128,4 +134,6 @@ BEGIN
     END IF;
 END;
 $$;
+
+-- select count(*) from crypto;
 
